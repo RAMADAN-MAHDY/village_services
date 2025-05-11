@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="container mx-auto text-center">
         <p className="text-sm">&copy; 2025 All rights reserved. Restaurant Services</p>
         <p className="text-sm">Designed by Restaurant Services Team</p>
-        <p className="text-sm">Developed by Decka Hassan</p>
+        <p className="text-sm">Developed by Deka & Helin & Malıka</p>
       </div>
     </footer>
   );
