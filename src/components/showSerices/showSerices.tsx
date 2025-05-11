@@ -69,7 +69,7 @@ const ShowServices: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4 h-auto  ">
-      <h1 className="text-2xl font-bold mb-4 text-center text-[#fff]">Available Services</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center text-[#fff]">Mevcut Hizmetler</h1>
 
       {/* Filter Dropdown */}
       <div className="mb-6 flex justify-center">
@@ -78,7 +78,7 @@ const ShowServices: React.FC = () => {
           onChange={(e) => handleFilter(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-md  focus:outline-none focus:ring-2 focus:ring-blue-500  bg-white shadow-[0px_4px_17px_rgba(55.45.40.0,5)] hover:shadow-[0px_14px_17px_rgba(55.45.40.0,5)]"
         >
-          <option value="">All Categories</option>
+          <option value="">Tüm Kategoriler</option>
           {categories.map((category) => (
             <option key={category} value={category}>
               {category}

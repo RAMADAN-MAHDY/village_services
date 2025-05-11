@@ -11,7 +11,7 @@ export default function AddServicePage() {
 
   return (
     <div className='h-[100vh]'>
-      <SectionTitle title="Share your service" />
+      <SectionTitle title="Hizmetinizi paylaşın" />
       <div className={`flex justify-center items-center h-[70px] bg-[#3d69bbda] text-white py-3 space-x-4`}>
         <button
           className="px-4 py-2 relative bg-blue-600 hover:bg-blue-700 group text-white font-semibold rounded shadow-md transition duration-300"
@@ -20,8 +20,7 @@ export default function AddServicePage() {
             // setShowHelpForm(false);
           }}
         >
-              <span className="relative z-10"> Add service</span>
-
+<span className="relative z-10">Hizmet Ekle</span>
               <span className={`absolute inset-0 bg-[#1c3774] scale-x-0 ${showServiceForm && "scale-x-100"} origin-right  transition-transform duration-500 ease-in-out`}></span>
 
         </button>

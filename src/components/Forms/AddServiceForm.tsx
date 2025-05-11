@@ -15,7 +15,7 @@ const AddServiceForm: React.FC<{
   }) => void;
 }> = ({ onSubmit }) => {
     
-  const [description, setDescription] = useState("Service Description");
+  const [description, setDescription] = useState("Hizmet Açıklaması");
   const [image, setImage] = useState<File>();
   const [phone, setPhone] = useState("");
   const [category, setCategory] = useState("");
@@ -27,15 +27,9 @@ const AddServiceForm: React.FC<{
 const [successMessage, setSuccessMessage] = useState<boolean>(false);
 
   const categories = [
-    "Restaurants",
-    "Medical Services",
-    "Technical Services",
-    "Handicrafts",
-    "Freelance Work",
-    "Delivery",
-    "Workshops",
-    "Education",
-    "Other",
+    "Fazla Gıdayı Paylaşın",
+    "Gönüllü Teslimat",
+    
   ];
 
   const handleContactMethodChange = (method: string) => {
@@ -50,32 +44,32 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
     e.preventDefault();
     setloading(true);
 
-    // تحقق من وجود طريقة واحدة على الأقل للتواصل
+    // En az bir iletişim yöntemi seçildiğinden emin olun
     if (
       !contactMethods.includes("phone") &&
       !contactMethods.includes("whatsapp") &&
       !contactMethods.includes("email")
     ) {
-      alert("You must select at least one contact method (Phone, WhatsApp, or Email).");
+      alert("En az bir iletişim yöntemi seçmelisiniz (Telefon, WhatsApp veya E-posta).");
       setloading(false);
       return;
     }
 
-    // التحقق من صحة الرقم التركي
+    // Türk telefon numarasının geçerliliğini kontrol et
     const turkishPhoneRegex = /^(?:\+90|0)?\d{10}$/;
     if (contactMethods.includes("phone") && !turkishPhoneRegex.test(phone)) {
-      alert("Please enter a valid Turkish phone number (e.g., +905xxxxxxxxx or 05xxxxxxxxx).");
+      alert("Lütfen geçerli bir Türk telefon numarası girin (ör. +905xxxxxxxxx veya 05xxxxxxxxx).");
       setloading(false);
       return;
     }
 
     if (contactMethods.includes("whatsapp") && !turkishPhoneRegex.test(whatsapp)) {
-      alert("Please enter a valid Turkish WhatsApp number (e.g., +905xxxxxxxxx or 05xxxxxxxxx).");
+      alert("Lütfen geçerli bir Türk WhatsApp numarası girin (ör. +905xxxxxxxxx veya 05xxxxxxxxx).");
       setloading(false);
       return;
     }
 
-    const finalCategory = category === "Other" ? customCategory : category;
+    const finalCategory = category === "Diğer" ? customCategory : category;
 
     const formData = new FormData();
     formData.append("description", description);
@@ -85,19 +79,19 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
     formData.append("whatsapp", whatsapp);
     formData.append("email", email);
     if (image) {
-      formData.append("image", image); // إرسال الصورة كملف
+      formData.append("image", image); // Görüntüyü dosya olarak gönder
     }
 
     try {
       const response = await fetch("/api/Providingservice", {
         method: "POST",
-        body: formData, // إرسال البيانات كـ FormData
+        body: formData, // Verileri FormData olarak gönder
       });
 
       if (response.ok) {
         const result = await response.json();
-        console.log("Request submitted successfully:", result);
-        // Reset form fields
+        console.log("İstek başarıyla gönderildi:", result);
+        // Form alanlarını sıfırla
         setDescription("");
         setImage(undefined);
         setPhone("");
@@ -109,39 +103,30 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
         setloading(false);
         setSuccessMessage(true);
       } else {
-        console.error("Failed to submit request:", await response.json());
+        console.error("İstek gönderilemedi:", await response.json());
       }
     } catch (error) {
-      console.error("Error submitting request:", error);
+      console.error("İstek gönderilirken hata oluştu:", error);
     }
   };
-
-//   const toBase64 = (file: File): Promise<string> => {
-//     return new Promise((resolve, reject) => {
-//       const reader = new FileReader();
-//       reader.readAsDataURL(file);
-//       reader.onload = () => resolve(reader.result as string);
-//       reader.onerror = (error) => reject(error);
-//     });
-//   };
 
   return (
     <form
       onSubmit={handleSubmit}
       className="flex flex-col overflow-auto space-y-4 bg-white p-6 rounded shadow-md max-h-[80vh]"
     >
-      <h2 className="text-lg font-bold text-gray-700">Add Service</h2>
+      <h2 className="text-lg font-bold text-gray-700">Hizmet Ekle</h2>
 
-      {/* category select */}
+      {/* Kategori seçimi */}
       <div>
-        <label className="block text-sm font-medium text-gray-700">Service</label>
+        <label className="block text-sm font-medium text-gray-700">Hizmet</label>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           required
         >
-          <option value="">Select Service Type</option>
+          <option value="">Hizmet Türünü Seçin</option>
           {categories.map((cat) => (
             <option key={cat} value={cat}>
               {cat}
@@ -150,9 +135,9 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
         </select>
       </div>
 
-      {category === "Other" && (
+      {category === "Diğer" && (
         <div>
-          <label className="block text-sm font-medium text-gray-700">Write Category</label>
+          <label className="block text-sm font-medium text-gray-700">Kategori Yazın</label>
           <input
             type="text"
             value={customCategory}
@@ -163,9 +148,9 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
         </div>
       )}
 
-      {/* description */}
+      {/* Açıklama */}
       <div>
-        <label className="block text-sm font-medium text-gray-700">Description</label>
+        <label className="block text-sm font-medium text-gray-700">Açıklama</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -175,9 +160,9 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
         />
       </div>
 
-      {/* contact methods */}
+      {/* İletişim yöntemleri */}
       <div>
-        <label className="block text-sm font-medium text-gray-700">Contact Methods</label>
+        <label className="block text-sm font-medium text-gray-700">İletişim Yöntemleri</label>
         <div className="space-y-2">
           <div>
             <input
@@ -187,14 +172,14 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
               onChange={() => handleContactMethodChange("phone")}
             />
             <label htmlFor="phone" className="ml-2 text-sm">
-              Phone Number
+              Telefon Numarası
             </label>
           </div>
           {contactMethods.includes("phone") && (
             <div>
               <input
                 type="text"
-                placeholder="Phone Number"
+                placeholder="Telefon Numarası"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -217,7 +202,7 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
             <div>
               <input
                 type="text"
-                placeholder="WhatsApp Number"
+                placeholder="WhatsApp Numarası"
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -233,14 +218,14 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
               onChange={() => handleContactMethodChange("email")}
             />
             <label htmlFor="email" className="ml-2 text-sm">
-              Email
+              E-posta
             </label>
           </div>
           {contactMethods.includes("email") && (
             <div>
               <input
                 type="email"
-                placeholder="Email Address"
+                placeholder="E-posta Adresi"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -249,10 +234,10 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
           )}
         </div>
       </div>
-      {/* حقل الصورة مع المعاينة */}
+      {/* Görüntü alanı ve önizleme */}
 <div>
   <label className="text-sm font-medium text-gray-700 flex items-center">
-    <FaCamera className="mr-2 text-blue-500" /> Upload Image
+    <FaCamera className="mr-2 text-blue-500" /> Görüntü Yükle
   </label>
   <input
     type="file"
@@ -260,29 +245,29 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
     onChange={(e) => {
       const file = e.target.files?.[0];
       if (file) {
-        setImage(file); // تخزين الصورة في الحالة
+        setImage(file); // Görüntüyü duruma kaydet
       }
     }}
     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
   />
   {image && (
     <div className="mt-4">
-      <p className="text-sm text-gray-600">Image Preview:</p>
+      <p className="text-sm text-gray-600">Görüntü Önizleme:</p>
       <img
-        src={URL.createObjectURL(image)} // عرض الصورة باستخدام URL مؤقت
-        alt="Image Preview"
+        src={URL.createObjectURL(image)} // Geçici URL kullanarak görüntüyü göster
+        alt="Görüntü Önizleme"
         className="mt-2 w-32 h-32 object-cover rounded border"
       />
     </div>
   )}
 </div>
-<p className="text-center text-[#0bdb27] font-bold text-4xl"> { successMessage && "Request Sent Successfully" }</p>
+<p className="text-center text-[#0bdb27] font-bold text-4xl"> { successMessage && "İstek Başarıyla Gönderildi" }</p>
       <button
         disabled={loading}
         type="submit"
         className="px-4 py-2 bg-blue-600 hover:bg-blue-700  text-white font-semibold rounded shadow-md transition duration-300"
       >
-      {loading ? "Sending..." : "Submit Request" }
+      {loading ? "Gönderiliyor..." : "İsteği Gönder" }
       </button>
     </form>
   );
