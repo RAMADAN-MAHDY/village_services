@@ -130,7 +130,7 @@ const ShowServices: React.FC = () => {
                     <li>
                       💬{" "}
                       <a
-                        href={`https://wa.me/${service.phone}`}
+                        href={`https://wa.me/${service.whatsapp}`}
                         className="text-green-500 hover:underline"
                         target="_blank"
                         rel="noopener noreferrer"

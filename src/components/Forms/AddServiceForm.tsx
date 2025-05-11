@@ -48,7 +48,8 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-     setloading(true)
+    setloading(true);
+
     // تحقق من وجود طريقة واحدة على الأقل للتواصل
     if (
       !contactMethods.includes("phone") &&
@@ -56,6 +57,21 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
       !contactMethods.includes("email")
     ) {
       alert("You must select at least one contact method (Phone, WhatsApp, or Email).");
+      setloading(false);
+      return;
+    }
+
+    // التحقق من صحة الرقم التركي
+    const turkishPhoneRegex = /^(?:\+90|0)?\d{10}$/;
+    if (contactMethods.includes("phone") && !turkishPhoneRegex.test(phone)) {
+      alert("Please enter a valid Turkish phone number (e.g., +905xxxxxxxxx or 05xxxxxxxxx).");
+      setloading(false);
+      return;
+    }
+
+    if (contactMethods.includes("whatsapp") && !turkishPhoneRegex.test(whatsapp)) {
+      alert("Please enter a valid Turkish WhatsApp number (e.g., +905xxxxxxxxx or 05xxxxxxxxx).");
+      setloading(false);
       return;
     }
 
@@ -90,8 +106,8 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
         setContactMethods([]);
         setWhatsapp("");
         setEmail("");
-        setloading(false)
-        setSuccessMessage(true)
+        setloading(false);
+        setSuccessMessage(true);
       } else {
         console.error("Failed to submit request:", await response.json());
       }
