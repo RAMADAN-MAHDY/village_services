@@ -1,13 +1,13 @@
 "use client";
 
 import AddServiceForm from '../../components/Forms/AddServiceForm';
-import HelpRequestForm from '../../components/Forms/HelpRequestForm';
+// import HelpRequestForm from '../../components/Forms/HelpRequestForm';
 import SectionTitle from '../../components/Shared/SectionTitle';
 import { useState } from 'react';
 
 export default function AddServicePage() {
   const [showServiceForm, setShowServiceForm] = useState<boolean>(true);
-  const [showHelpForm, setShowHelpForm] = useState<boolean>(false);
+//   const [showHelpForm, setShowHelpForm] = useState<boolean>(false);
 
   return (
     <div className='h-[100vh]'>
@@ -17,7 +17,7 @@ export default function AddServicePage() {
           className="px-4 py-2 relative bg-blue-600 hover:bg-blue-700 group text-white font-semibold rounded shadow-md transition duration-300"
           onClick={() => {
             setShowServiceForm(true);
-            setShowHelpForm(false);
+            // setShowHelpForm(false);
           }}
         >
               <span className="relative z-10"> Add service</span>
