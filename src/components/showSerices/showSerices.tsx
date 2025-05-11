@@ -37,6 +37,9 @@ const ShowServices: React.FC = () => {
           // Extract unique categories
           const uniqueCategories = Array.from(new Set(data.map((service: Service) => service.category)));
           setCategories(uniqueCategories);
+          console.log(services[3].whatsapp)
+          console.log(services[0].whatsapp)
+          console.log(services[1].whatsapp)
         } else {
           console.error("Unexpected data format:", data);
         }
