@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import ReactStars from "react-stars";
+import Loading from '../../app/loading';
 
 interface Service {
   _id: string;
@@ -60,8 +61,8 @@ const ShowServices: React.FC = () => {
   };
 
   if (loading) {
-  return <p className="text-center">Loading...</p>;
-}
+    return <Loading />;
+  }
 
   return (
     <div className="container mx-auto p-4 h-auto  ">

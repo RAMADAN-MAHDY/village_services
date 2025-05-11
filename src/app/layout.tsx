@@ -5,6 +5,8 @@ import Footer from '../components/Layout/Footer';
 import Container from '../components/Layout/Container';
 import LanguageSwitcher from '../components/Shared/LanguageSwitcher';
 import './globals.css';
+import React, { Suspense } from 'react';
+import Loading from './loading';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,9 +34,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Navbar />
-        {/* <LanguageSwitcher /> */}
         <Container>
-          {children}
+          <Suspense fallback={<Loading />}>
+            {children}
+          </Suspense>
         </Container>
         <Footer />
       </body>
