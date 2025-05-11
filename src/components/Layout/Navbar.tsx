@@ -19,22 +19,22 @@ const Navbar = () => {
           <li>
             <Link
               href="/"
-              className={`relative sm:p-3 p-2 rounded-3xl  group ${activeLink === '/' ? 'text-yellow-300 bg-[#545]' : 'bg-[#6628b8]'}`}
+              className={`relative sm:p-3 p-2 rounded-3xl group ${activeLink === '/' ? 'text-yellow-300 bg-[#545]' : 'bg-[#6628b8]'}`}
               onClick={() => handleLinkClick('/')}
             >
-              <span className="relative z-10">الرئيسية</span>
-              <span className="absolute rounded-3xl inset-0 bg-[#545]  scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500 ease-in-out"></span>
+              <span className="relative z-10">Home</span>
+              <span className="absolute rounded-3xl inset-0 bg-[#545] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500 ease-in-out"></span>
             </Link>
           </li>
           <li>
-            <Link
+            {/* <Link
               href="/About"
               className={`relative sm:p-3 p-2 rounded-3xl group ${activeLink === '/About' ? 'text-yellow-300 bg-[#545]' : 'bg-[#754691]'}`}
               onClick={() => handleLinkClick('/About')}
             >
               <span className="relative z-10">من نحن </span>
               <span className="absolute rounded-3xl inset-0 bg-[#545] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500 ease-in-out"></span>
-            </Link>
+            </Link> */}
           </li>
           <li>
             <Link
@@ -42,7 +42,7 @@ const Navbar = () => {
               className={`relative sm:p-3 p-2 rounded-3xl group ${activeLink === '/add-service' ? 'text-yellow-300 bg-[#545]' : 'bg-[#8d518d]'}`}
               onClick={() => handleLinkClick('/add-service')}
             >
-              <span className="relative z-10">اضافة خدمة</span>
+              <span className="relative z-10">Add Service</span>
               <span className="absolute rounded-3xl inset-0 bg-[#545] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500 ease-in-out"></span>
             </Link>
           </li>

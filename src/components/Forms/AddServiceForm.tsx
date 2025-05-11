@@ -15,7 +15,7 @@ const AddServiceForm: React.FC<{
   }) => void;
 }> = ({ onSubmit }) => {
     
-  const [description, setDescription] = useState("وصف الخدمة");
+  const [description, setDescription] = useState("Service Description");
   const [image, setImage] = useState<File>();
   const [phone, setPhone] = useState("");
   const [category, setCategory] = useState("");
@@ -27,15 +27,15 @@ const AddServiceForm: React.FC<{
 const [successMessage, setSuccessMessage] = useState<boolean>(false);
 
   const categories = [
-    "مطاعم",
-    "خدمات طبية",
-    "خدمات تقنية",
-    "أعمال يدوية",
-    "أعمال حره",
-    "توصيل",
-    "ورش",
-    "تعليم",
-    "أخرى",
+    "Restaurants",
+    "Medical Services",
+    "Technical Services",
+    "Handicrafts",
+    "Freelance Work",
+    "Delivery",
+    "Workshops",
+    "Education",
+    "Other",
   ];
 
   const handleContactMethodChange = (method: string) => {
@@ -55,11 +55,11 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
       !contactMethods.includes("whatsapp") &&
       !contactMethods.includes("email")
     ) {
-      alert("يجب اختيار طريقة واحدة على الأقل للتواصل (الهاتف، الواتساب، أو الإيميل).");
+      alert("You must select at least one contact method (Phone, WhatsApp, or Email).");
       return;
     }
 
-    const finalCategory = category === "أخرى" ? customCategory : category;
+    const finalCategory = category === "Other" ? customCategory : category;
 
     const formData = new FormData();
     formData.append("description", description);
@@ -114,18 +114,18 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
       onSubmit={handleSubmit}
       className="flex flex-col overflow-auto space-y-4 bg-white p-6 rounded shadow-md max-h-[80vh]"
     >
-      <h2 className="text-lg font-bold text-gray-700">اضافة خدمه</h2>
+      <h2 className="text-lg font-bold text-gray-700">Add Service</h2>
 
       {/* category select */}
       <div>
-        <label className="block text-sm font-medium text-gray-700">الخدمه</label>
+        <label className="block text-sm font-medium text-gray-700">Service</label>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           required
         >
-          <option value="">اختر نوع الخدمه</option>
+          <option value="">Select Service Type</option>
           {categories.map((cat) => (
             <option key={cat} value={cat}>
               {cat}
@@ -134,9 +134,9 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
         </select>
       </div>
 
-      {category === "أخرى" && (
+      {category === "Other" && (
         <div>
-          <label className="block text-sm font-medium text-gray-700">اكتب الفئة</label>
+          <label className="block text-sm font-medium text-gray-700">Write Category</label>
           <input
             type="text"
             value={customCategory}
@@ -149,7 +149,7 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
 
       {/* description */}
       <div>
-        <label className="block text-sm font-medium text-gray-700">الوصف</label>
+        <label className="block text-sm font-medium text-gray-700">Description</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -161,7 +161,7 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
 
       {/* contact methods */}
       <div>
-        <label className="block text-sm font-medium text-gray-700">طرق التواصل</label>
+        <label className="block text-sm font-medium text-gray-700">Contact Methods</label>
         <div className="space-y-2">
           <div>
             <input
@@ -171,14 +171,14 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
               onChange={() => handleContactMethodChange("phone")}
             />
             <label htmlFor="phone" className="ml-2 text-sm">
-              رقم الهاتف
+              Phone Number
             </label>
           </div>
           {contactMethods.includes("phone") && (
             <div>
               <input
                 type="text"
-                placeholder="رقم الهاتف"
+                placeholder="Phone Number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -194,14 +194,14 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
               onChange={() => handleContactMethodChange("whatsapp")}
             />
             <label htmlFor="whatsapp" className="ml-2 text-sm">
-              واتساب
+              WhatsApp
             </label>
           </div>
           {contactMethods.includes("whatsapp") && (
             <div>
               <input
                 type="text"
-                placeholder="رقم واتساب"
+                placeholder="WhatsApp Number"
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -217,14 +217,14 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
               onChange={() => handleContactMethodChange("email")}
             />
             <label htmlFor="email" className="ml-2 text-sm">
-              إيميل
+              Email
             </label>
           </div>
           {contactMethods.includes("email") && (
             <div>
               <input
                 type="email"
-                placeholder="البريد الإلكتروني"
+                placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -236,7 +236,7 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
       {/* حقل الصورة مع المعاينة */}
 <div>
   <label className="text-sm font-medium text-gray-700 flex items-center">
-    <FaCamera className="mr-2 text-blue-500" /> رفع صورة
+    <FaCamera className="mr-2 text-blue-500" /> Upload Image
   </label>
   <input
     type="file"
@@ -251,22 +251,22 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
   />
   {image && (
     <div className="mt-4">
-      <p className="text-sm text-gray-600">معاينة الصورة:</p>
+      <p className="text-sm text-gray-600">Image Preview:</p>
       <img
         src={URL.createObjectURL(image)} // عرض الصورة باستخدام URL مؤقت
-        alt="معاينة الصورة"
+        alt="Image Preview"
         className="mt-2 w-32 h-32 object-cover rounded border"
       />
     </div>
   )}
 </div>
-<p className="text-center text-[#0bdb27] font-bold text-4xl"> { successMessage&& "تم ارسال الطلب "}</p>
+<p className="text-center text-[#0bdb27] font-bold text-4xl"> { successMessage && "Request Sent Successfully" }</p>
       <button
         disabled={loading}
         type="submit"
         className="px-4 py-2 bg-blue-600 hover:bg-blue-700  text-white font-semibold rounded shadow-md transition duration-300"
       >
-      {loading ? "ارسال ...": " إرسال الطلب" }
+      {loading ? "Sending..." : "Submit Request" }
       </button>
     </form>
   );

@@ -60,12 +60,12 @@ const ShowServices: React.FC = () => {
   };
 
   if (loading) {
-  return <p className="text-center">جاري التحميل...</p>;
+  return <p className="text-center">Loading...</p>;
 }
 
   return (
     <div className="container mx-auto p-4 h-auto  ">
-      <h1 className="text-2xl font-bold mb-4 text-center text-[#fff]">الخدمات المتاحة</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center text-[#fff]">Available Services</h1>
 
       {/* Filter Dropdown */}
       <div className="mb-6 flex justify-center">
@@ -74,7 +74,7 @@ const ShowServices: React.FC = () => {
           onChange={(e) => handleFilter(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-md  focus:outline-none focus:ring-2 focus:ring-blue-500  bg-white shadow-[0px_4px_17px_rgba(55.45.40.0,5)] hover:shadow-[0px_14px_17px_rgba(55.45.40.0,5)]"
         >
-          <option value="">كل الفئات</option>
+          <option value="">All Categories</option>
           {categories.map((category) => (
             <option key={category} value={category}>
               {category}
@@ -99,7 +99,7 @@ const ShowServices: React.FC = () => {
               />
             ) : (
               <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-500">لا توجد صورة</span>
+                <span className="text-gray-500">No Image Available</span>
               </div>
             )}
 
@@ -110,7 +110,7 @@ const ShowServices: React.FC = () => {
 
               {/* Contact Methods */}
               <div className="mb-4">
-                <h3 className="text-sm font-semibold">وسائل الاتصال:</h3>
+                <h3 className="text-sm font-semibold">Contact Methods:</h3>
                 <ul className="text-sm text-gray-600">
                   {service.contactMethods.includes("phone") && (
                     <li>
@@ -134,7 +134,7 @@ const ShowServices: React.FC = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        واتساب
+                        WhatsApp
                       </a>
                     </li>
                   )}
@@ -156,12 +156,12 @@ const ShowServices: React.FC = () => {
 
               {/* Buttons */}
               <div className="flex justify-between items-center">
-                <button
+                {/* <button
                   className="px-4 py-2 bg-blue-500 text-white text-sm rounded shadow hover:bg-blue-600"
                   onClick={() => console.log(`Details clicked for ${service._id}`)}
                 >
-                  عرض التفاصيل
-                </button>
+                  View Details
+                </button> */}
 
                 {/* Rating */}
                 <ReactStars
