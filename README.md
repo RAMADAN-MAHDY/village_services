@@ -1,115 +1,137 @@
-#  Services | خدمات 
 
-## English
+# 📘 شرح ملفات المشروع
 
-### Overview
- Services is a platform designed to connect restaurants and various services to provide donations or free meals to municipalities for distribution to those in need.
-
-### Getting Started
-
-To start the development server, run the following command:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
-
-### Project Structure
-
-The project is organized as follows:
-
-- **`src/app`**: Contains the main application logic, including pages, API routes, and global styles.
-- **`src/components`**: Reusable components for the application.
-- **`src/lib`**: Utility files such as database connections and models.
-- **`public`**: Static assets like images and icons.
-
-### Features
-
-- Add, view services.
-- Filter services by category.
-- Responsive design for all devices.
-- Built with Next.js, React, and Tailwind CSS.
-
-### Environment Variables
-
-To run this project, you need to set up the following environment variables in a `.env` file:
-
-```env
-MONGODB_URI=<Your MongoDB Connection String>
-IMGBB_API_KEY=<Your IMGBB API Key>
-```
-
-### Deployment
-
-To deploy the application, use the following command:
-
-```bash
-npm run build && npm start
-```
-
-For more details, refer to the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying).
+هذا الملف يحتوي على توثيق مبسط يوضح وظيفة كل ملف في المشروع، سواء من جانب الواجهة الأمامية (Front-end) أو الخلفية (Back-end).
 
 ---
 
-## العربية
+## 🖥️ الواجهة الأمامية (Front-end)
 
-### نظرة عامة
-خدمات  هي منصة تهدف إلى ربط المطاعم والخدمات المختلفة لتقديم التبرعات أو الوجبات المجانية للبلدية لتوزيعها على المحتاجين.
+### 📄 `page.tsx`
+يمثل الصفحة الرئيسية للتطبيق.  
+يتم استيراد مكونات مثل `HeroSection` و `ShowServices` لعرض قسم البطل والخدمات المتوفرة داخل JSX.
 
-### كيفية البدء
+---
 
-لتشغيل خادم التطوير، قم بتشغيل الأمر التالي:
+### 📄 `loading.tsx`
+يعرض شاشة تحميل (Loading Screen) بتصميم بسيط باستخدام Tailwind CSS.  
+يُستخدم أثناء تحميل البيانات.
 
-```bash
-npm run dev
-# أو
-yarn dev
-# أو
-pnpm dev
-# أو
-bun dev
-```
+---
 
-افتح [http://localhost:3000](http://localhost:3000) في متصفحك لعرض التطبيق.
+### 📄 `not-found.tsx`
+يعرض صفحة خطأ 404 عند محاولة الوصول إلى صفحة غير موجودة.  
+يعتمد على مكون `SectionTitle`.
 
-### هيكل المشروع
+---
 
-تم تنظيم المشروع كالتالي:
+### 📄 `AddServiceForm.tsx`
+نموذج لإضافة خدمة جديدة.  
+يستخدم React hooks لإدارة الحالة مثل:  
+- الوصف  
+- الصورة  
+- رقم الهاتف  
+- الفئة  
+- طرق الاتصال  
 
-- **`src/app`**: يحتوي على منطق التطبيق الرئيسي، بما في ذلك الصفحات ومسارات API والأنماط العامة.
-- **`src/components`**: مكونات قابلة لإعادة الاستخدام للتطبيق.
-- **`src/lib`**: ملفات الأدوات مثل اتصالات قاعدة البيانات والنماذج.
-- **`public`**: الأصول الثابتة مثل الصور والأيقونات.
+يتم التحقق من صحة البيانات قبل إرسالها إلى الخادم باستخدام `fetch`.
 
-### الميزات
+---
 
-- إضافة وعرض  الخدمات.
-- تصفية الخدمات حسب الفئة.
-- تصميم متجاوب لجميع الأجهزة.
-- مبني باستخدام Next.js و React و Tailwind CSS.
+### 📄 `HeroSection.tsx`
+يعرض قسم البطل (Hero Section) في الصفحة الرئيسية.  
+يتضمن نصوص تعريفية وتصميم جذاب باستخدام Tailwind CSS.
 
-### متغيرات البيئة
+---
 
-لتشغيل هذا المشروع، تحتاج إلى إعداد متغيرات البيئة التالية في ملف `.env`:
+### 📄 `Footer.tsx`
+مكون يعرض تذييل الصفحة (Footer) مع حقوق الملكية وبعض المعلومات عن فريق التطوير.  
+مصمم باستخدام Tailwind CSS.
 
-```env
-MONGODB_URI=<رابط اتصال MongoDB الخاص بك>
-IMGBB_API_KEY=<مفتاح API الخاص بـ IMGBB>
-```
+---
 
-### النشر 
+### 📄 `Navbar.tsx`
+شريط التنقل بين الصفحات.  
+يستخدم `useState` لتحديد الرابط النشط (active).
 
-لنشر التطبيق، استخدم الأمر التالي:
+---
 
-```bash
-npm run build && npm start
-```
+### 📄 `Container.tsx`
+مكون لتغليف المحتوى ضمن تصميم موحد باستخدام Tailwind CSS.
 
-لمزيد من التفاصيل، راجع [وثائق نشر Next.js](https://nextjs.org/docs/app/building-your-application/deploying).
+---
+
+### 📄 `showServices.tsx`
+يعرض قائمة الخدمات المتوفرة.  
+يتم:
+- جلب البيانات من API باستخدام `fetch`
+- تصفية النتائج حسب الفئة
+- عرض الخدمات بتنسيق شبكة (Grid) مع تفاصيل مثل الصورة وطرق الاتصال
+
+---
+
+### 📄 `globals.css`
+ملف إعدادات CSS العامة باستخدام Tailwind CSS.  
+يحدد الألوان والخطوط الافتراضية للتطبيق.
+
+---
+
+## 📦 الواجهة الخلفية (Back-end)
+
+### 📄 `UsersSchema.ts`
+تعريف مخطط مستخدمي التطبيق باستخدام Mongoose.  
+الحقول تشمل:
+- رقم الهاتف (phone)
+- واتساب (whatsapp)
+- البريد الإلكتروني (email)
+- تاريخ الإنشاء (createdAt)
+
+يتم استخدام المخطط لإنشاء نموذج (Model) لمستخدمي التطبيق.
+
+---
+
+### 📄 `ProvidingserviceSchema.ts`
+مخطط الخدمات المقدمة.  
+يشمل الحقول:
+- المستخدم المرتبط بالخدمة (user)
+- الوصف (description)
+- الفئة (category)
+- طرق الاتصال (contactMethods)
+- الصورة (image)
+
+يحتوي أيضًا على تحقق من صحة البريد الإلكتروني باستخدام Regex.
+
+---
+
+### 📄 `mongoose.ts`
+منطق الاتصال بقاعدة بيانات MongoDB باستخدام مكتبة Mongoose.  
+يقوم بـ:
+- تعريف متغير URI الخاص بالاتصال
+- إعادة استخدام الاتصال إذا كان موجودًا مسبقًا
+- تسجيل حالة الاتصال في Console
+
+---
+
+### 📄 `route.ts`
+نقطة API لجلب الخدمات (`Providingservice`) من قاعدة البيانات.  
+- إذا تم تمرير معرف (ID): يتم جلب خدمة واحدة  
+- إذا لم يتم تمرير معرف: يتم جلب جميع الخدمات  
+
+يتم استخدام `populate` لجلب بيانات المستخدم المرتبط بالخدمة، مع استثناء كلمة المرور.
+
+---
+
+### 📄 `Providingservice/route.ts`
+نقطة API لإضافة خدمة جديدة.  
+تستخدم:
+- مكتبة `Busboy` لمعالجة البيانات والملفات
+- تحقق من وجود المستخدم أو إنشاءه
+- رفع الصور إلى خدمة خارجية (مثل imgbb)
+- إنشاء مستند جديد في قاعدة البيانات يحتوي على تفاصيل الخدمة
+
+---
+
+## ✅ ملاحظات إضافية
+- كل العمليات الحيوية مثل الإضافة، الجلب، التحقق من الصحة، وربط المستخدمين تتم من خلال MongoDB وMongoose.
+- تصميم الواجهة بالكامل يعتمد على Tailwind CSS.
+- بعض الأجزاء مثل رفع الصور تعتمد على خدمات خارجية.
