@@ -1,4 +1,3 @@
-
 # 📘 شرح ملفات المشروع
 
 هذا الملف يحتوي على توثيق مبسط يوضح وظيفة كل ملف في المشروع، سواء من جانب الواجهة الأمامية (Front-end) أو الخلفية (Back-end).
@@ -135,3 +134,134 @@
 - كل العمليات الحيوية مثل الإضافة، الجلب، التحقق من الصحة، وربط المستخدمين تتم من خلال MongoDB وMongoose.
 - تصميم الواجهة بالكامل يعتمد على Tailwind CSS.
 - بعض الأجزاء مثل رفع الصور تعتمد على خدمات خارجية.
+
+---
+
+## 🖥️ Ön Yüz (Front-end)
+
+### 📄 `page.tsx`
+Uygulamanın ana sayfasını temsil eder.  
+`HeroSection` ve `ShowServices` gibi bileşenler JSX içinde görüntülenir.
+
+---
+
+### 📄 `loading.tsx`
+Basit bir tasarımla yükleme ekranı (Loading Screen) gösterir.  
+Veriler yüklenirken kullanılır.
+
+---
+
+### 📄 `not-found.tsx`
+404 hata sayfasını gösterir.  
+`SectionTitle` bileşenine dayanır.
+
+---
+
+### 📄 `AddServiceForm.tsx`
+Yeni bir hizmet eklemek için form.  
+Durum yönetimi için React hook'ları kullanır:  
+- Açıklama  
+- Görsel  
+- Telefon numarası  
+- Kategori  
+- İletişim yöntemleri  
+
+Veriler sunucuya gönderilmeden önce doğrulanır.
+
+---
+
+### 📄 `HeroSection.tsx`
+Ana sayfada kahraman bölümü (Hero Section) gösterir.  
+Tanıtıcı metinler ve Tailwind CSS ile çekici bir tasarım içerir.
+
+---
+
+### 📄 `Footer.tsx`
+Sayfa altbilgisini (Footer) geliştirici ekibi hakkında bilgilerle birlikte gösterir.  
+Tailwind CSS ile tasarlanmıştır.
+
+---
+
+### 📄 `Navbar.tsx`
+Sayfalar arasında gezinme çubuğu.  
+Aktif bağlantıyı belirlemek için `useState` kullanır.
+
+---
+
+### 📄 `Container.tsx`
+İçeriği tek tip bir tasarım içinde sarmak için bileşen.  
+Tailwind CSS kullanır.
+
+---
+
+### 📄 `showServices.tsx`
+Mevcut hizmetlerin listesini gösterir.  
+- Veriler `fetch` ile API'den alınır  
+- Sonuçlar kategoriye göre filtrelenir  
+- Hizmetler, görsel ve iletişim detaylarıyla birlikte bir ızgara (Grid) düzeninde gösterilir
+
+---
+
+### 📄 `globals.css`
+Tailwind CSS kullanılarak genel CSS ayarları dosyası.  
+Uygulamanın varsayılan renklerini ve yazı tiplerini belirler.
+
+---
+
+## 📦 Arka Yüz (Back-end)
+
+### 📄 `UsersSchema.ts`
+Mongoose kullanılarak uygulama kullanıcılarının şeması tanımlanır.  
+Alanlar şunları içerir:  
+- Telefon numarası (phone)  
+- WhatsApp (whatsapp)  
+- E-posta (email)  
+- Oluşturulma tarihi (createdAt)  
+
+Bu şema, uygulama kullanıcıları için bir model (Model) oluşturmak için kullanılır.
+
+---
+
+### 📄 `ProvidingserviceSchema.ts`
+Sağlanan hizmetlerin şeması.  
+Alanlar şunları içerir:  
+- Hizmetle ilişkili kullanıcı (user)  
+- Açıklama (description)  
+- Kategori (category)  
+- İletişim yöntemleri (contactMethods)  
+- Görsel (image)  
+
+Ayrıca Regex kullanılarak e-posta doğrulaması içerir.
+
+---
+
+### 📄 `mongoose.ts`
+Mongoose kütüphanesi kullanılarak MongoDB veritabanına bağlanma mantığı.  
+- Bağlantı için URI değişkenini tanımlar  
+- Bağlantı zaten mevcutsa yeniden kullanır  
+- Bağlantı durumunu Konsol'da kaydeder
+
+---
+
+### 📄 `route.ts`
+Veritabanından hizmetleri (`Providingservice`) almak için API uç noktası.  
+- Bir kimlik (ID) iletilirse: Tek bir hizmet alınır  
+- Kimlik iletilmezse: Tüm hizmetler alınır  
+
+`populate` kullanılarak hizmetle ilişkili kullanıcı verileri alınır, ancak şifre hariç tutulur.
+
+---
+
+### 📄 `Providingservice/route.ts`
+Yeni bir hizmet eklemek için API uç noktası.  
+- Verileri ve dosyaları işlemek için `Busboy` kütüphanesi kullanılır  
+- Kullanıcının varlığı kontrol edilir veya oluşturulur  
+- Görseller harici bir hizmete (ör. imgbb) yüklenir  
+- Hizmetin detaylarını içeren yeni bir belge veritabanına eklenir
+
+---
+
+## ✅ Ek Notlar
+- Ekleme, alma, doğrulama ve kullanıcıları ilişkilendirme gibi tüm temel işlemler MongoDB ve Mongoose aracılığıyla gerçekleştirilir.
+- Tüm ön yüz tasarımı Tailwind CSS'e dayanır.
+- Görsel yükleme gibi bazı bölümler harici hizmetlere dayanır.
