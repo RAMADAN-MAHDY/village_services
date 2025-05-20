@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/app/lib/mongoose";
-import users from "@/app/lib/models/UsersSchema";
+import usersAccount from "@/app/lib/models/UsersSchema";
 import Providingservice from "@/app/lib/models/ProvidingserviceSchema";
 import Busboy from "busboy";
 import fs from "fs";
@@ -8,6 +8,10 @@ import path from "path";
 import os from "os";
 import axios from "axios";
 import FormData from "form-data";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { generateToken } from "@/app/lib/jwt";
+import { setTokenCookie } from "@/app/lib/cookies";
 
 export const config = {
   api: {
@@ -18,38 +22,68 @@ export const config = {
 export async function POST(req: NextRequest) {
   try {
     const fields: Record<string, any> = {};
-    const files: Record<string, any> = {};
+    const files: Record<
+      string,
+      { filepath: string; mimetype: string }
+    > = {};
 
-    // إعداد busboy
-    const busboy = Busboy({ headers: Object.fromEntries(req.headers.entries()) });
+    // busboy بيتوقع headers بصيغة plain object مش Headers instance
+    const headersObj = Object.fromEntries(req.headers.entries());
+    const busboy = Busboy({ headers: headersObj });
 
     const parsePromise = new Promise<void>((resolve, reject) => {
-    interface UploadedFile {
-      filepath: string;
-      mimetype: string;
+  busboy.on(
+  "file",
+  (
+    fieldname: string,
+    file: NodeJS.ReadableStream,
+    filenameOrObject: any,
+    encoding: string,
+    mimetype: string
+  ) => {
+    // لو filename جاي object بدل string، خليه نصه اسم الملف، وحاول تاخد mimeType من جواه لو موجود
+    let filename: string;
+    if (typeof filenameOrObject === "object" && filenameOrObject !== null) {
+      filename = filenameOrObject.filename || "unknown-file";
+      if (!mimetype) {
+        mimetype = filenameOrObject.mimeType || filenameOrObject.mimetype || "";
+      }
+      if (!encoding) {
+        encoding = filenameOrObject.encoding || "";
+      }
+    } else {
+      filename = filenameOrObject;
     }
 
-    interface FilesRecord {
-      [fieldname: string]: UploadedFile;
-    }
+    // console.log({ fieldname, filename, encoding, mimetype });
 
-    busboy.on("file", (fieldname: string, file: NodeJS.ReadableStream, filename: string, encoding: string, mimetype: string) => {
-      // إذا كان filename غير موجود أو ليس سلسلة نصية، قم بتعيين اسم افتراضي
-      const safeFilename = typeof filename === "string" && filename.trim() !== "" ? filename : `upload-${Date.now()}`;
+          const allowedTypes = ["image/png", "image/jpg", "image/jpeg"];
+          if (!allowedTypes.includes(mimetype)) {
+            file.resume(); // نتجاهل الملف
+            console.warn(
+              `File [${fieldname}] rejected due to unsupported mimetype: ${mimetype}`
+            );
+            return;
+          }
 
-      const saveTo = path.join(os.tmpdir(), safeFilename); // استخدم اسم الملف الآمن
-      const writeStream = fs.createWriteStream(saveTo);
-      file.pipe(writeStream);
+          const safeFilename =
+            typeof filename === "string" && filename.trim() !== ""
+              ? filename
+              : `upload-${Date.now()}`;
+          const saveTo = path.join(os.tmpdir(), safeFilename);
+          const writeStream = fs.createWriteStream(saveTo);
+          file.pipe(writeStream);
 
-      (files as FilesRecord)[fieldname] = {
-        filepath: saveTo,
-        mimetype,
-      };
+          files[fieldname] = {
+            filepath: saveTo,
+            mimetype,
+          };
 
-      file.on("end", () => {
-        console.log(`File [${fieldname}] finished uploading.`);
-      });
-    });
+          file.on("end", () => {
+            console.log(`File [${fieldname}] finished uploading.`);
+          });
+        }
+      );
 
       busboy.on("field", (fieldname, value) => {
         fields[fieldname] = value;
@@ -59,7 +93,7 @@ export async function POST(req: NextRequest) {
       busboy.on("error", (err) => reject(err));
     });
 
-    // تحويل NextRequest.body إلى stream ونمرره لـ busboy
+    // تحويل NextRequest.body إلى stream قابل للـ pipe مع busboy
     const reader = req.body?.getReader();
     if (!reader) throw new Error("Request body not found");
 
@@ -74,52 +108,79 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const nodeReadable = require("stream").Readable.from(stream as any);
+    // نستخدم stream من النوع NodeJS.Readable
+    const { Readable } = await import("stream");
+    const nodeReadable = Readable.from(stream as any);
     nodeReadable.pipe(busboy);
 
     await parsePromise;
 
-    // console.log("Fields:", fields);
-    // console.log("Files:", files);
-
     await connectToDatabase();
 
-    const existingUser = await users.findOne({
+    // دالة توليد كلمة مرور عشوائية
+    function generateRandomPassword(length = 6) {
+      return crypto.randomBytes(length).toString("base64").slice(0, length);
+    }
+
+    let userId;
+
+    // بحث عن المستخدم حسب البيانات المدخلة
+    const existingUser = await usersAccount.findOne({
       $or: [
-        { phone: fields.phone },
-        { whatsapp: fields.whatsapp },
-        { email: fields.email },
+        ...(fields.phone ? [{ phone: fields.phone }] : []),
+        ...(fields.whatsapp ? [{ whatsapp: fields.whatsapp }] : []),
+        ...(fields.email ? [{ email: fields.email }] : []),
       ],
     });
 
-    let userId;
     if (existingUser) {
       userId = existingUser._id;
     } else {
-      const newUser = new users({
+      const plainPassword = generateRandomPassword();
+      const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+      const newUser = new usersAccount({
         phone: fields.phone,
         whatsapp: fields.whatsapp,
         email: fields.email,
+        password: hashedPassword,
       });
       const savedUser = await newUser.save();
       userId = savedUser._id;
     }
 
-    let imageUrl = null;
+    let imageUrl: string | null = null;
+
     if (files.image) {
       const imagePath = files.image.filepath;
-      const imageBuffer = fs.readFileSync(imagePath);
-      const base64Image = imageBuffer.toString("base64");
 
-      const formData = new FormData();
-      formData.append("image", base64Image);
+      try {
+        const imageBuffer = fs.readFileSync(imagePath);
+        const base64Image = imageBuffer.toString("base64");
 
-      const imgRes = await axios.post("https://api.imgbb.com/1/upload", formData, {
-        headers: formData.getHeaders(),
-        params: { key: process.env.IMGBB_API_KEY },
-      });
+        const formData = new FormData();
+        formData.append("image", base64Image);
 
-      imageUrl = imgRes.data.data.url;
+        const imgRes = await axios.post("https://api.imgbb.com/1/upload", formData, {
+          headers: formData.getHeaders(),
+          params: { key: process.env.IMGBB_API_KEY },
+        });
+
+        imageUrl = imgRes.data.data.url;
+      } finally {
+        fs.unlinkSync(imagePath);
+      }
+    }
+
+    // معالجة contactMethods لو هي مصفوفة JSON
+    let contactMethodsArray: any[] = [];
+    try {
+      contactMethodsArray = JSON.parse(fields.contactMethods || "[]");
+      if (!Array.isArray(contactMethodsArray)) {
+        contactMethodsArray = [];
+      }
+    } catch {
+      contactMethodsArray = [];
     }
 
     const helpRequest = new Providingservice({
@@ -127,15 +188,20 @@ export async function POST(req: NextRequest) {
       description: fields.description,
       phone: fields.phone,
       category: fields.category,
-      contactMethods: JSON.parse(fields.contactMethods || "[]"),
+      contactMethods: contactMethodsArray,
       whatsapp: fields.whatsapp,
       email: fields.email,
       image: imageUrl,
     });
 
-    const savedRequest = await helpRequest.save();
+    await helpRequest.save();
 
-    return NextResponse.json({ insertedId: savedRequest._id }, { status: 201 });
+    const token = generateToken({ id: userId.toString() });
+
+    const response = NextResponse.json({ insertedId: userId }, { status: 201 });
+    setTokenCookie(response, token);
+
+    return response;
   } catch (error) {
     console.error("POST /api/Providingservice error:", error);
     return NextResponse.json({ error: "Failed to create new request" }, { status: 500 });

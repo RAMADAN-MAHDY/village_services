@@ -81,6 +81,7 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
       if (response.ok) {
         const result = await response.json();
         console.log("Request submitted successfully:", result);
+        console.log("Request submitted successfully:", image);
         // Reset form fields
         setDescription("");
         setImage(undefined);

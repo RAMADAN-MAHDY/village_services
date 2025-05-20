@@ -10,7 +10,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-blue-500 sm:text-[18px]  text-white py-4 shadow-md fixed top-0 w-full h-[70px] z-40">
+    <nav className=" bg-gradient-to-r from-blue-500 to-purple-600  sm:text-[18px]  text-white py-4 shadow-md fixed top-0 w-full h-[70px] z-40">
       <div className="container mx-auto mt-[-10px] flex justify-between items-center sm:px-10 px-1">
       <img src="/Screenshot 2025-05-06 111735.png" alt="Logo" className="w-[87px] h-[60px]mt-[-40px ]" />
         {/* <h1 className="text-2xl font-bold"> مجتمعنا</h1> */}
@@ -42,7 +42,17 @@ const Navbar = () => {
               className={`relative sm:p-3 p-2 rounded-3xl group ${activeLink === '/add-service' ? 'text-yellow-300 bg-[#545]' : 'bg-[#8d518d]'}`}
               onClick={() => handleLinkClick('/add-service')}
             >
-              <span className="relative z-10">اضافة خدمة</span>
+              <span className="relative z-10">اضافة || طلب</span>
+              <span className="absolute rounded-3xl inset-0 bg-[#545] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500 ease-in-out"></span>
+            </Link>
+          </li>
+            <li>
+            <Link
+              href="/Profile"
+              className={`relative sm:p-3 p-2 rounded-3xl group ${activeLink === '/Profile' ? 'text-yellow-300 bg-[#545]' : 'bg-[#8d518d]'}`}
+              onClick={() => handleLinkClick('/Profile')}
+            >
+              <span className="relative z-10">الملف الشخصي</span>
               <span className="absolute rounded-3xl inset-0 bg-[#545] scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500 ease-in-out"></span>
             </Link>
           </li>

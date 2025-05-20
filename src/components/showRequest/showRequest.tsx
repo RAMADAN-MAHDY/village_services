@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import ReactStars from "react-stars";
 import Loading from '@/app/loading';
 import ServiceDescription from '@/components/showSerices/ServiceDescription';
+
 interface Service {
   _id: string;
   description: string;
@@ -12,21 +13,22 @@ interface Service {
   phone: string;
   whatsapp: string;
   email: string;
-  image?: string[];
 }
 
-const ShowServices: React.FC = () => {
+const ShowRequest: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
+console.log(services)
+
   // Fetch data from API
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await fetch("/api/GET_Router/Providingservice");
+        const response = await fetch("/api/GET_Router/RequestService");
         const data = await response.json();
 
         // تحقق مما إذا كانت البيانات مصفوفة
@@ -61,21 +63,18 @@ const ShowServices: React.FC = () => {
   };
 
   if (loading) {
- return  <Loading/>
-
+  return  <Loading/>
 }
 
   return (
     <div className="container mx-auto p-4 h-auto  ">
 <h1 className="text-3xl font-bold mb-4 text-center text-[#fff]">
-الخدمات المعروضة
+الطلبات المقدمة من الزوار
 </h1>
 <h2 className="text-3xl mb-4 text-center text-[#ffffff]">
-في القسم ده هتلاقي خدمات معروضة من ناس حابة تساعد،  
-لو في خدمة منهم مناسبة ليك، تقدر تتواصل مع صاحب الخدمة مباشرة.
+هنا بنعرض الطلبات اللي تم تقديمها بخصوص خدمات مطلوبة،  
+ولو عندك خدمة مناسبة تقدر تتواصل مع صاحب الطلب بشكل مباشر.
 </h2>
-
-
 
       {/* Filter Dropdown */}
       <div className="mb-6 flex justify-center">
@@ -101,7 +100,7 @@ const ShowServices: React.FC = () => {
             className=" bg-white rounded-lg shadow-[0px_4px_17px_rgba(55.45.40.0,5)] hover:shadow-[0px_14px_17px_rgba(55.45.40.0,5)] overflow-hidden border border-gray-200"
           >
             {/* Image */}
-            {service.image && service.image.length > 0 ? (
+            {/* {service.image && service.image.length > 0 ? (
               <img
                 src={service.image[0]}
                 alt={service.category}
@@ -111,17 +110,16 @@ const ShowServices: React.FC = () => {
               <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
                 <span className="text-gray-500">لا توجد صورة</span>
               </div>
-            )}
+            )} */}
 
             {/* Content */}
             <div className="p-4">
               <h2 className="text-lg font-semibold mb-2">{service.category}</h2>
-              {/* <p className="text-sm text-gray-600 mb-4 truncate">{service.description}</p> */}
              <ServiceDescription description={service.description} />
 
               {/* Contact Methods */}
               <div className="mb-4">
-                <h3 className="text-sm mt-3 text-[18px] font-semibold">وسائل الاتصال:</h3>
+                <h3 className="text-sm font-semibold">وسائل الاتصال:</h3>
                 <ul className="text-sm text-gray-600">
                   {service.contactMethods.includes("phone") && (
                     <li>
@@ -194,4 +192,4 @@ const ShowServices: React.FC = () => {
   );
 };
 
-export default ShowServices;
+export default ShowRequest;
