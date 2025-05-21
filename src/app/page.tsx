@@ -11,21 +11,8 @@ export default function HomePage() {
     <>
       <HeroSection />
 
-
-      {/* <Categories 
-        categories={[
-          { id: 1, url : "/category/id" , name: "طب" },
-          { id: 2, url : "/category/id" , name: "صيدله" },
-          { id: 3, url : "/category/id" , name: "عطاره" },
-          { id: 4, url : "/category/id" , name: "بقاله" },
-          { id: 5, url : "/category/id" , name: "حلويات" },
-          { id: 6, url : "/category/id" , name: "اعمال حره" },
-          { id: 8, url : "/category/id" , name: "انتاج حيواني" },
-          { id: 9, url : "/category/id" , name: "انتاج نباتي" },
-        ]}
-      /> */}
      
-           <ShowServices />
+     <ShowServices />
 
     </>
   );
