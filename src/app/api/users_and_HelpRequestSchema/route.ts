@@ -7,7 +7,9 @@ import HelpRequest from "@/app/lib/models/HelpRequestSchema"
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { generateToken } from "@/app/lib/jwt";
-import { setTokenCookie } from "@/app/lib/cookies"; 
+import { setTokenCookie } from "@/app/lib/cookies";
+import { cookies } from "next/headers";
+import { verifyToken } from "@/app/lib/jwt";
 
 
 export async function POST(req: NextRequest) {
@@ -32,38 +34,63 @@ export async function POST(req: NextRequest) {
         }
 
 
-        const existingUser = await users.findOne({
-            $or: [
-                ...(data.phone ? [{ phone: data.phone }] : []),
-                ...(data.whatsapp ? [{ whatsapp: data.whatsapp }] : []),
-                ...(data.email ? [{ email: data.email }] : [])
-            ]
+        // const existingUser = await users.findOne({
+        //     $or: [
+        //         ...(data.phone ? [{ phone: data.phone }] : []),
+        //         ...(data.whatsapp ? [{ whatsapp: data.whatsapp }] : []),
+        //         ...(data.email ? [{ email: data.email }] : [])
+        //     ]
+        // });
+
+        const cookieStore = await cookies();
+        const GETtoken = cookieStore.get("token")?.value;
+
+        let decoded: any = null;
+
+        if (GETtoken) {
+            try {
+                const temp = verifyToken(GETtoken);
+                if (temp !== null && typeof temp === "object" && "id" in temp) {
+                    decoded = temp;
+                }
+            } catch (err) {
+                // التوكن بايظ أو مش قابل للفك => نسيبه undefined ونتعامل بعدين
+                console.warn("Invalid token, creating new user");
+            }
+        }
+
+     if (!decoded) {
+    // تحقق هل المستخدم موجود أصلاً بالبريد أو الواتس أو التليفون
+    const existingUser = await users.findOne({
+        $or: [
+            ...(data.phone ? [{ phone: data.phone }] : []),
+            ...(data.whatsapp ? [{ whatsapp: data.whatsapp }] : []),
+            ...(data.email ? [{ email: data.email }] : [])
+        ]
+    });
+
+    if (existingUser) {
+        userId = existingUser._id;
+    } else {
+        const plainPassword = generateRandomPassword();
+        const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+        const newUser = new users({
+            phone: data.phone,
+            whatsapp: data.whatsapp,
+            email: data.email,
+            password: hashedPassword,
         });
 
-        if (existingUser) {
-
-            if (Array.isArray(existingUser)) {
-                userId = existingUser[0]?._id;
-            } else {
-                userId = existingUser?._id;
-            }
-
-        } else {
-            const plainPassword = generateRandomPassword();
-            const hashedPassword = await bcrypt.hash(plainPassword, 10);
-
-            const newUser = new users({
-                phone: data.phone,
-                whatsapp: data.whatsapp,
-                email: data.email,
-                password: hashedPassword,
-            });
-
-            const savedUser = await newUser.save();
-            userId = savedUser._id;
-
-
+        const savedUser = await newUser.save();
+        userId = savedUser._id;
+    }
+} else {
+            // مستخدم موجود => ناخد الـ id من التوكن
+            userId = decoded.id;
         }
+
+
 
         const helpRequest = new HelpRequest({
             user: userId,
@@ -77,14 +104,14 @@ export async function POST(req: NextRequest) {
 
         await helpRequest.save();
 
-    // هنا بنولد التوكن بالـ userId
+        // هنا بنولد التوكن بالـ userId
         const token = generateToken({ id: userId.toString() });
 
-    // نضيف الكوكيز للتوكن
-  const response = NextResponse.json({ insertedId: userId }, { status: 201 });
+        // نضيف الكوكيز للتوكن
+        const response = NextResponse.json({ insertedId: userId }, { status: 201 });
 
-  // نضيف الكوكيز للتوكن
-    setTokenCookie(response, token);
+        // ارسال الكوكيز للتوكن
+        setTokenCookie(response, token);
 
 
         // console.log(savedRequest)

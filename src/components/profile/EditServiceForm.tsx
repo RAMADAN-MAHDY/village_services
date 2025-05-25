@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaCamera } from "react-icons/fa";
 
@@ -18,59 +18,55 @@ interface EditServiceFormProps {
         description: string;
         category: string;
         contactMethods: string[];
-        phone: string;
-        whatsapp: string;
-        email: string;
+        phone?: string;
+        whatsapp?: string;
+        email?: string;
         image: string[];
     }[];
     onClose: () => void;
-    onSave: (data: any) => void;
+    // onSave: (data: any) => void;
     serviceId: string;
 }
 
-export default function EditServiceForm({ service, onClose, onSave, serviceId }: EditServiceFormProps) {
-    const [EditService, SetEditService] = useState(service)
-    const currentService = EditService.find(s => s._id === serviceId);
+export default function EditServiceForm({ service, onClose, serviceId }: EditServiceFormProps) {
+    const currentService = service.find(s => s._id === serviceId);
 
- let initialImage: string | null = null;
-if (currentService?.image && Array.isArray(currentService.image) && currentService.image.length > 0) {
-    initialImage = currentService.image[0];
-}
+    let initialImage: string | null = null;
+    if (currentService?.image && Array.isArray(currentService.image) && currentService.image.length > 0) {
+        initialImage = currentService.image[0];
+    }
 
-const [formData, setFormData] = useState<{
-    description: string;
-    contactMethods: string[];
-    phone: string;
-    whatsapp: string;
-    email: string;
-    image: string | File | null;
-}>({
-    description: currentService?.description || "",
-    contactMethods: currentService?.contactMethods || [],
-    phone: currentService?.phone || "",
-    whatsapp: currentService?.whatsapp || "",
-    email: currentService?.email || "",
-    image: initialImage,
-});
+    const [formData, setFormData] = useState<{
+        description: string;
+        contactMethods: string[];
+        phone: string;
+        whatsapp: string;
+        email: string;
+        image: string | File | null;
+    }>({
+        description: currentService?.description || "",
+        contactMethods: currentService?.contactMethods || [],
+        phone: currentService?.phone || "",
+        whatsapp: currentService?.whatsapp || "",
+        email: currentService?.email || "",
+        image: initialImage,
+    });
 
 
 
     const [loading, setLoading] = useState(false);
 
-    //   console.log("service")
-    //   console.log(currentService)
-    //   console.log(serviceId)
-
-    useEffect(() => {
-        if (serviceId) {
-            SetEditService((prev) => prev.filter((item) => item._id !== serviceId));
-        }
-    }, [serviceId]);
-
-
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
+
+
+        // console.log("currentService:", currentService);
+        // console.log("formData:", formData);
+        // console.log("هل رقم الهاتف اتغير؟", formData.phone !== currentService?.phone);
+        // console.log("هل رقم الواتس اتغير؟", formData.whatsapp !== currentService?.whatsapp);
+
+
         const { name, value, type, checked } = e.target as HTMLInputElement;
 
         if (type === "checkbox") {
@@ -87,51 +83,107 @@ const [formData, setFormData] = useState<{
             }));
         }
     };
-
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
+        // console.log("currentService:", currentService);
+        //  console.log("formData:", formData);
+        //  console.log("هل رقم الهاتف اتغير؟", formData.phone !== currentService?.phone);
+        // console.log("هل رقم الواتس اتغير؟", formData.whatsapp !== currentService?.whatsapp);
+
         try {
+            const updatedFields: any = {};
+
+            if (formData.description !== currentService?.description) {
+                updatedFields.description = formData.description;
+            }
+
+
+            if (JSON.stringify(formData.contactMethods) !== JSON.stringify(currentService?.contactMethods)) {
+                updatedFields.contactMethods = formData.contactMethods;
+            }
+
+
+
+            if (
+                formData.contactMethods.includes("phone")
+                &&
+                formData.phone !== currentService?.phone
+            ) {
+                updatedFields.phone = formData.phone;
+            }
+
+            if (
+                formData.contactMethods.includes("whatsapp")
+                &&
+                formData.whatsapp !== currentService?.whatsapp
+            ) {
+
+                updatedFields.whatsapp = formData.whatsapp;
+
+
+            }
+
+            if (
+                formData.contactMethods.includes("email")
+                &&
+                formData.email !== currentService?.email
+            ) {
+                updatedFields.email = formData.email;
+            }
+
+            let isFileChanged = formData.image instanceof File;
+
+            if (Object.keys(updatedFields).length === 0 && !isFileChanged) {
+                alert("لا يوجد تغييرات لحفظها.");
+                setLoading(false);
+                return;
+            }
+
+            let response;
             const formDataToSend = new FormData();
 
-            formDataToSend.append("description", formData.description);
-            formData.contactMethods.forEach((method) =>
-                formDataToSend.append("contactMethods[]", method)
-            );
+            for (const key in updatedFields) {
+                if (key === "contactMethods") {
+                    // إرسال contactMethods كسلسلة JSON
+                    formDataToSend.append(key, JSON.stringify(updatedFields.contactMethods));
+                } else {
+                    formDataToSend.append(key, updatedFields[key]);
+                }
+            }
 
-            if (formData.contactMethods.includes("phone")) {
-                formDataToSend.append("phone", formData.phone);
-            }
-            if (formData.contactMethods.includes("whatsapp")) {
-                formDataToSend.append("whatsapp", formData.whatsapp);
-            }
-            if (formData.contactMethods.includes("email")) {
-                formDataToSend.append("email", formData.email);
-            }
+
             if (formData.image instanceof File) {
                 formDataToSend.append("image", formData.image);
             }
 
-            const res = await fetch(`/api/services/${serviceId}`, {
+            response = await fetch(`/api/PUT_Routes/Providingservice/${serviceId}`, {
                 method: "PUT",
                 body: formDataToSend,
             });
+            console.log("formDataToSend")
+            console.log(response.ok)
+            const data = await response.json();
 
-            const data = await res.json();
-            if (res.ok) {
-                onSave(data);
+            if (response.status === 200) {
+                // onSave(data);
                 onClose();
+                playSondClick()
             } else {
-                alert(data.message || "حدث خطأ ما.");
+                alert(data.message || "حدث خطأ أثناء الحفظ.");
             }
-        } catch (error) {
-            alert("فشل الاتصال بالخادم.");
+        } catch (err) {
+            alert(err);
         } finally {
             setLoading(false);
         }
     };
 
-
+      const clickSound = new Audio("/mixkit-ethereal-fairy-win-sound-2019.wav");
+  const playSondClick = () => {
+    clickSound.currentTime = 0;
+    clickSound.play();
+  };
     return (
         <AnimatePresence>
             <motion.div
@@ -171,7 +223,7 @@ const [formData, setFormData] = useState<{
                             <div className="mt-4">
                                 <p className="text-sm text-gray-600">معاينة الصورة:</p>
                                 <img
-                                    src={formData.image[0]} // رابط مباشر من السيرفر
+                                    src={formData.image} // هنا غيرت من formData.image[0] لـ formData.image
                                     alt="معاينة الصورة"
                                     className="mt-2 w-32 h-32 object-cover rounded border"
                                 />
@@ -186,6 +238,7 @@ const [formData, setFormData] = useState<{
                                 />
                             </div>
                         ) : null}
+
 
                     </div>
 

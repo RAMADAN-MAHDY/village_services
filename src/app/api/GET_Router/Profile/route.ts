@@ -27,13 +27,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     const userId = decoded.id;
-    console.log(userId)
+    // console.log(token)
 
     try {
         const Providingservic = await ProvidingserviceSchema.find({ user: userId }).populate("user", "-password");
 
         const HelpRequestservic = await HelpRequest.find({ user: userId }).populate("user", "-password");
 
+    // console.log(Providingservic)
 
         return NextResponse.json({
             Providingservic ,
