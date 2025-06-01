@@ -41,9 +41,6 @@ npm run dev
 ```
 **أو** يمكنك استخدام `yarn dev` أو `pnpm dev` حسب مدير الحزم لديك.  
 
-## 🔗 **روابط هامة**  
-- **مستودع المشروع:** [GitHub Repository](https://github.com/RAMADAN-MAHDY/village_services)  
-- **التوثيق:** [Village Services Wiki](https://github.com/RAMADAN-MAHDY/village_services/wiki)  
 
 ---
 
