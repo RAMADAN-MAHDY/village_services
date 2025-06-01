@@ -236,6 +236,14 @@ export async function POST(req: NextRequest) {
         return response;
     } catch (error) {
         console.error("POST /api/Providingservice error:", error);
-        return NextResponse.json({ error }, { status: 500 });
+      return NextResponse.json(
+  { 
+    error: true,
+    message: error instanceof Error ? error.message : String(error),
+    stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined
+  },
+  { status: 500 }
+);
+
     }
 }
