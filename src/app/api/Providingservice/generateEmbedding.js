@@ -2,7 +2,7 @@ import axios from 'axios';
 
 async function generateEmbedding(text) {
   try {
-    const response = await axios.post('http://localhost:3000/embed', {
+    const response = await axios.post('https://ai-agent-by-node.vercel.app/embed', {
       text,
     });
 

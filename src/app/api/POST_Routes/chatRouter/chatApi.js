@@ -2,7 +2,7 @@ import axios from 'axios';
 
 async function chatApi(text) {
   try {
-    const response = await axios.post('http://localhost:3000/ask', {
+    const response = await axios.post('https://ai-agent-by-node.vercel.app/ask', {
       text,
     });
 

@@ -60,8 +60,8 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
       return;
     }
      if (
-      !email&&
-      !whatsapp &&
+      !email||
+      !whatsapp ||
       !email
     ) {
       alert("يجب اختيار طريقة واحدة على الأقل للتواصل (الهاتف، الواتساب، أو الإيميل).");

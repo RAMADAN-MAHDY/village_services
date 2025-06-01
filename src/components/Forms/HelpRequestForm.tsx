@@ -57,8 +57,8 @@ export default function HelpRequestForm({ onSubmit }: HelpRequestFormProps) {
             return;
         }
  if (
-      !email&&
-      !whatsapp &&
+      !email||
+      !whatsapp ||
       !email
     ) {
       alert("يجب اختيار طريقة واحدة على الأقل للتواصل (الهاتف، الواتساب، أو الإيميل). وملئ الحقل");
