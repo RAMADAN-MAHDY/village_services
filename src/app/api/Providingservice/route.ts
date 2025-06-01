@@ -3,7 +3,7 @@ import { connectToDatabase } from "@/app/lib/mongoose";
 import usersAccount from "@/app/lib/models/UsersSchema";
 import Providingservice from "@/app/lib/models/ProvidingserviceSchema";
 import Busboy from "busboy";
-import fs from "fs";
+import fs from "fs/promises";
 import path from "path";
 import os from "os";
 import axios from "axios";
@@ -15,205 +15,273 @@ import { setTokenCookie } from "@/app/lib/cookies";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/app/lib/jwt";
 import { generateEmbedding } from './generateEmbedding';
+import { pipeline } from 'stream/promises';
+import { createWriteStream } from 'fs';
+
 export const config = {
     api: {
         bodyParser: false,
     },
 };
 
-export async function POST(req: NextRequest) {
+// Constants
+const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpg", "image/jpeg"];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const PASSWORD_LENGTH = 8;
+
+// Utility functions
+const generateRandomPassword = (length = PASSWORD_LENGTH): string => {
+    return crypto.randomBytes(Math.ceil(length * 3 / 4)).toString("base64").slice(0, length);
+};
+
+const sanitizeFilename = (filename: string): string => {
+    return filename.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 100);
+};
+
+// Image upload function
+const uploadImageToImgBB = async (imagePath: string): Promise<string> => {
     try {
+        const imageBuffer = await fs.readFile(imagePath);
+        const base64Image = imageBuffer.toString("base64");
+
+        const formData = new FormData();
+        formData.append("image", base64Image);
+
+        const response = await axios.post(
+            "https://api.imgbb.com/1/upload",
+            formData,
+            {
+                headers: formData.getHeaders(),
+                params: { key: process.env.IMGBB_API_KEY },
+                timeout: 30000, // 30 second timeout
+                maxContentLength: MAX_FILE_SIZE,
+                maxBodyLength: MAX_FILE_SIZE
+            }
+        );
+
+        return response.data.data.url;
+    } catch (error) {
+        console.error("Image upload failed:", error);
+        throw new Error("Failed to upload image");
+    }
+};
+
+// User authentication and creation
+const handleUserAuthentication = async (fields: Record<string, any>) => {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    // Try to verify existing token
+    if (token) {
+        try {
+            const decoded = verifyToken(token);
+            if (decoded && typeof decoded === "object" && "id" in decoded) {
+                return decoded.id;
+            }
+        } catch (err) {
+            console.warn("Invalid token, proceeding with user lookup/creation");
+        }
+    }
+
+    // Look for existing user
+    const searchQuery = {
+        $or: [
+            ...(fields.phone ? [{ phone: fields.phone }] : []),
+            ...(fields.whatsapp ? [{ whatsapp: fields.whatsapp }] : []),
+            ...(fields.email ? [{ email: fields.email }] : [])
+        ]
+    };
+
+    if (searchQuery.$or.length > 0) {
+        const existingUser = await usersAccount.findOne(searchQuery);
+        if (existingUser) {
+            return existingUser._id;
+        }
+    }
+
+    // Create new user
+    const plainPassword = generateRandomPassword();
+    const hashedPassword = await bcrypt.hash(plainPassword, 12); // Increased rounds for better security
+
+    const newUser = new usersAccount({
+        phone: fields.phone,
+        whatsapp: fields.whatsapp,
+        email: fields.email,
+        password: hashedPassword,
+    });
+
+    const savedUser = await newUser.save();
+    return savedUser._id;
+};
+
+// File parsing with better error handling
+const parseMultipartData = async (req: NextRequest): Promise<{
+    fields: Record<string, any>;
+    files: Record<string, { filepath: string; mimetype: string }>;
+}> => {
+    return new Promise((resolve, reject) => {
         const fields: Record<string, any> = {};
-        const files: Record<
-            string,
-            { filepath: string; mimetype: string }
-        > = {};
+        const files: Record<string, { filepath: string; mimetype: string }> = {};
+        const cleanupFiles: string[] = [];
 
-        // busboy بيتوقع headers بصيغة plain object مش Headers instance
         const headersObj = Object.fromEntries(req.headers.entries());
-        const busboy = Busboy({ headers: headersObj });
-
-        const parsePromise = new Promise<void>((resolve, reject) => {
-            busboy.on(
-                "file",
-                (
-                    fieldname: string,
-                    file: NodeJS.ReadableStream,
-                    filenameOrObject: any,
-                    encoding: string,
-                    mimetype: string
-                ) => {
-                    // لو filename جاي object بدل string، خليه نصه اسم الملف، وحاول تاخد mimeType من جواه لو موجود
-                    let filename: string;
-                    if (typeof filenameOrObject === "object" && filenameOrObject !== null) {
-                        filename = filenameOrObject.filename || "unknown-file";
-                        if (!mimetype) {
-                            mimetype = filenameOrObject.mimeType || filenameOrObject.mimetype || "";
-                        }
-                        if (!encoding) {
-                            encoding = filenameOrObject.encoding || "";
-                        }
-                    } else {
-                        filename = filenameOrObject;
-                    }
-
-                    // console.log({ fieldname, filename, encoding, mimetype });
-
-                    const allowedTypes = ["image/png", "image/jpg", "image/jpeg"];
-                    if (!allowedTypes.includes(mimetype)) {
-                        file.resume(); // نتجاهل الملف
-                        console.warn(
-                            `File [${fieldname}] rejected due to unsupported mimetype: ${mimetype}`
-                        );
-                        return;
-                    }
-
-                    const safeFilename =
-                        typeof filename === "string" && filename.trim() !== ""
-                            ? filename
-                            : `upload-${Date.now()}`;
-                    const saveTo = path.join(os.tmpdir(), safeFilename);
-                    const writeStream = fs.createWriteStream(saveTo);
-                    file.pipe(writeStream);
-
-                    files[fieldname] = {
-                        filepath: saveTo,
-                        mimetype,
-                    };
-
-                    file.on("end", () => {
-                        console.log(`File [${fieldname}] finished uploading.`);
-                    });
-                }
-            );
-
-            busboy.on("field", (fieldname, value) => {
-                fields[fieldname] = value;
-            });
-
-            busboy.on("finish", () => resolve());
-            busboy.on("error", (err) => reject(err));
+        const busboy = Busboy({
+            headers: headersObj,
+            limits: {
+                fileSize: MAX_FILE_SIZE,
+                files: 1, // Only allow one file
+                fields: 20 // Limit number of fields
+            }
         });
 
-        // تحويل NextRequest.body إلى stream قابل للـ pipe مع busboy
+        busboy.on("file", (
+            fieldname: string,
+            file: NodeJS.ReadableStream,
+            filenameOrObject: any,
+            encoding: string,
+            mimetype: string
+        ) => {
+            let filename: string;
+
+            if (typeof filenameOrObject === "object" && filenameOrObject !== null) {
+                filename = filenameOrObject.filename || "unknown-file";
+                mimetype = mimetype || filenameOrObject.mimeType || filenameOrObject.mimetype || "";
+                encoding = encoding || filenameOrObject.encoding || "";
+            } else {
+                filename = filenameOrObject;
+            }
+
+            // Validate file type
+            if (!ALLOWED_IMAGE_TYPES.includes(mimetype)) {
+                file.resume();
+                console.warn(`File [${fieldname}] rejected: ${mimetype}`);
+                return;
+            }
+
+            const safeFilename = sanitizeFilename(filename) || `upload-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+            const saveTo = path.join(os.tmpdir(), safeFilename);
+
+            const writeStream = createWriteStream(saveTo);
+            cleanupFiles.push(saveTo);
+
+            // Handle file size limit
+            let fileSize = 0;
+            file.on("data", (chunk: Buffer) => {
+                fileSize += chunk.length;
+                if (fileSize > MAX_FILE_SIZE) {
+                    file.unpipe();
+                    writeStream.destroy();
+                    reject(new Error('File too large'));
+                    return;
+                }
+            });
+
+            file.pipe(writeStream);
+
+            files[fieldname] = {
+                filepath: saveTo,
+                mimetype,
+            };
+
+            file.on("end", () => {
+                console.log(`File [${fieldname}] uploaded successfully`);
+            });
+
+            file.on("error", (err: Error) => {
+                console.error(`File upload error: ${err.message}`);
+            });
+        });
+
+        busboy.on("field", (fieldname: string, value: string) => {
+            // Prevent field pollution
+            if (fieldname.length > 50 || value.length > 10000) {
+                console.warn(`Field ${fieldname} rejected: too large`);
+                return;
+            }
+            fields[fieldname] = value;
+        });
+
+        busboy.on("finish", () => {
+            resolve({ fields, files });
+        });
+
+        busboy.on("error", async (err: Error) => {
+            // Cleanup files on error
+            await Promise.allSettled(
+                cleanupFiles.map(file => fs.unlink(file).catch(() => { }))
+            );
+            reject(err);
+        });
+
+        // Convert NextRequest body to stream
         const reader = req.body?.getReader();
-        if (!reader) throw new Error("Request body not found");
+        if (!reader) {
+            reject(new Error("Request body not found"));
+            return;
+        }
 
         const stream = new ReadableStream({
             async start(controller) {
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    controller.enqueue(value);
+                try {
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        controller.enqueue(value);
+                    }
+                    controller.close();
+                } catch (error: any) {
+                    controller.error(error);
                 }
-                controller.close();
             },
         });
 
-        // نستخدم stream من النوع NodeJS.Readable
-        const { Readable } = await import("stream");
-        const nodeReadable = Readable.from(stream as any);
-        nodeReadable.pipe(busboy);
+        // Use Node.js Readable stream
+        import("stream").then(({ Readable }) => {
+            const nodeReadable = Readable.from(stream as any);
+            nodeReadable.pipe(busboy);
+        }).catch((error: Error) => reject(error));
+    });
+};
 
-        await parsePromise;
+export async function POST(req: NextRequest) {
+    let tempFiles: string[] = [];
 
+    try {
+        // Parse multipart data
+        const { fields, files } = await parseMultipartData(req);
+
+        // Track temp files for cleanup
+        tempFiles = Object.values(files).map(file => file.filepath);
+
+        // Connect to database
         await connectToDatabase();
 
-        // دالة توليد كلمة مرور عشوائية
-        function generateRandomPassword(length = 6) {
-            return crypto.randomBytes(length).toString("base64").slice(0, length);
-        }
-
-        let userId;
-
-        // التحقق من اليوزر عن طريق ال token   and jwt 
-        const cookieStore = await cookies();
-        const GETtoken = cookieStore.get("token")?.value;
-
-        let decoded: any = null;
-
-        if (GETtoken) {
-            try {
-                const temp = verifyToken(GETtoken);
-                if (temp !== null && typeof temp === "object" && "id" in temp) {
-                    decoded = temp;
+        // Handle user authentication in parallel with other operations
+        const [userId, contactMethodsArray] = await Promise.all([
+            handleUserAuthentication(fields),
+            // Parse contact methods
+            Promise.resolve().then(() => {
+                try {
+                    const parsed = JSON.parse(fields.contactMethods || "[]");
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch {
+                    return [];
                 }
-            } catch (err) {
-                // التوكن بايظ أو مش قابل للفك => نسيبه undefined ونتعامل بعدين
-                console.warn("Invalid token, creating new user");
-            }
-        }
+            })
+        ]);
 
-        if (!decoded) {
-            // تحقق هل المستخدم موجود أصلاً بالبريد أو الواتس أو التليفون
-            const existingUser = await usersAccount.findOne({
-                $or: [
-                    ...(fields.phone ? [{ phone: fields.phone }] : []),
-                    ...(fields.whatsapp ? [{ whatsapp: fields.whatsapp }] : []),
-                    ...(fields.email ? [{ email: fields.email }] : [])
-                ]
-            });
+        // Handle image upload and embedding generation in parallel
+        const [imageUrl, embedding] = await Promise.all([
+            // Upload image if exists
+            files.image ? uploadImageToImgBB(files.image.filepath) : Promise.resolve(null),
+            // Generate embedding
+            Promise.resolve().then(async () => {
+                const combinedText = `${fields.category || ''} ${fields.description || ''}`.trim();
+                return combinedText ? await generateEmbedding(combinedText) : null;
+            })
+        ]);
 
-            if (existingUser) {
-                userId = existingUser._id;
-            } else {
-                const plainPassword = generateRandomPassword();
-                const hashedPassword = await bcrypt.hash(plainPassword, 10);
-
-                const newUser = new usersAccount({
-                    phone: fields.phone,
-                    whatsapp: fields.whatsapp,
-                    email: fields.email,
-                    password: hashedPassword,
-                });
-
-                const savedUser = await newUser.save();
-                userId = savedUser._id;
-            }
-        } else {
-            // مستخدم موجود => ناخد الـ id من التوكن
-            userId = decoded.id;
-        }
-
-        let imageUrl: string | null = null;
-
-        if (files.image) {
-            const imagePath = files.image.filepath;
-
-            try {
-                const imageBuffer = fs.readFileSync(imagePath);
-                const base64Image = imageBuffer.toString("base64");
-
-                const formData = new FormData();
-                formData.append("image", base64Image);
-
-                const imgRes = await axios.post("https://api.imgbb.com/1/upload", formData, {
-                    headers: formData.getHeaders(),
-                    params: { key: process.env.IMGBB_API_KEY },
-                });
-
-                imageUrl = imgRes.data.data.url;
-            } finally {
-                fs.unlinkSync(imagePath);
-            }
-        }
-
-        // معالجة contactMethods لو هي مصفوفة JSON
-        let contactMethodsArray: any[] = [];
-        try {
-            contactMethodsArray = JSON.parse(fields.contactMethods || "[]");
-            if (!Array.isArray(contactMethodsArray)) {
-                contactMethodsArray = [];
-            }
-        } catch {
-            contactMethodsArray = [];
-        }
-
-//        // توليد embedding للنص المدمج من الفئة والوصف
-        const combinedText = `${fields.category || ''} ${fields.description || ''}`.trim();
-        const embedding = await generateEmbedding(combinedText);
-
-
+        // Create service request
         const helpRequest = new Providingservice({
             user: userId,
             description: fields.description,
@@ -223,27 +291,66 @@ export async function POST(req: NextRequest) {
             whatsapp: fields.whatsapp,
             email: fields.email,
             image: imageUrl,
-             embedding,
+            embedding,
         });
 
         await helpRequest.save();
 
+        // Generate token and response
         const token = generateToken({ id: userId.toString() });
+        const response = NextResponse.json(
+            {
+                success: true,
+                insertedId: userId,
+                serviceId: helpRequest._id
+            },
+            { status: 201 }
+        );
 
-        const response = NextResponse.json({ insertedId: userId }, { status: 201 });
         setTokenCookie(response, token);
 
         return response;
+
     } catch (error) {
         console.error("POST /api/Providingservice error:", error);
-      return NextResponse.json(
-  { 
-    error: true,
-    message: error instanceof Error ? error.message : String(error),
-    stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined
-  },
-  { status: 500 }
-);
 
+        // Return appropriate error based on type
+        if (error instanceof Error) {
+            if (error.message.includes("File too large")) {
+                return NextResponse.json(
+                    { error: "File size exceeds limit" },
+                    { status: 413 }
+                );
+            }
+            if (error.message.includes("Invalid token")) {
+                return NextResponse.json(
+                    { error: "Authentication failed" },
+                    { status: 401 }
+                );
+            }
+        }
+
+        return NextResponse.json(
+            {
+                error: true,
+                message: error instanceof Error ? error.message : "Internal server error",
+                ...(process.env.NODE_ENV === 'development' && error instanceof Error && {
+                    stack: error.stack
+                })
+            },
+            { status: 500 }
+        );
+
+    } finally {
+        // Cleanup temporary files
+        if (tempFiles.length > 0) {
+            await Promise.allSettled(
+                tempFiles.map((filepath: string) =>
+                    fs.unlink(filepath).catch((err: Error) =>
+                        console.warn(`Failed to cleanup ${filepath}:`, err.message)
+                    )
+                )
+            );
+        }
     }
 }
