@@ -236,6 +236,6 @@ export async function POST(req: NextRequest) {
         return response;
     } catch (error) {
         console.error("POST /api/Providingservice error:", error);
-        return NextResponse.json({ error: "Failed to create new request" }, { status: 500 });
+        return NextResponse.json({ error }, { status: 500 });
     }
 }
