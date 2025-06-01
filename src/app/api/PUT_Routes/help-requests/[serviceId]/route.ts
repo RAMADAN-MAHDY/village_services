@@ -6,11 +6,12 @@ import mongoose from 'mongoose'; // لاستخدام ObjectId والتحقق م�
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { serviceId: string } }
+    context: { params: any}
+
 ) {
   await connectToDatabase();
 
-  const { serviceId } = params; // الحصول على الـ id من الـ URL
+  const { serviceId } = await context.params; // الحصول على الـ id من الـ URL
 
   // التحقق من صلاحية الـ ID
   if (!mongoose.Types.ObjectId.isValid(serviceId)) {

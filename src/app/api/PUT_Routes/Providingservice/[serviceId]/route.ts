@@ -27,7 +27,7 @@ interface FieldsMap {
   [key: string]: string;
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { serviceId: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: any }) {
   try {
     const fields: FieldsMap = {};
     const files: FilesMap = {};
