@@ -17,6 +17,7 @@ import { verifyToken } from "@/app/lib/jwt";
 import { generateEmbedding } from './generateEmbedding';
 import { pipeline } from 'stream/promises';
 import { createWriteStream } from 'fs';
+import { Readable } from 'stream';
 
 export const config = {
     api: {
@@ -31,7 +32,7 @@ const PASSWORD_LENGTH = 8;
 
 // Utility functions
 const generateRandomPassword = (length = PASSWORD_LENGTH): string => {
-    return crypto.randomBytes(Math.ceil(length * 3 / 4)).toString("base64").slice(0, length);
+    return crypto.randomBytes(Math.ceil(length * 3/4)).toString("base64").slice(0, length);
 };
 
 const sanitizeFilename = (filename: string): string => {
@@ -48,8 +49,8 @@ const uploadImageToImgBB = async (imagePath: string): Promise<string> => {
         formData.append("image", base64Image);
 
         const response = await axios.post(
-            "https://api.imgbb.com/1/upload",
-            formData,
+            "https://api.imgbb.com/1/upload", 
+            formData, 
             {
                 headers: formData.getHeaders(),
                 params: { key: process.env.IMGBB_API_KEY },
@@ -115,7 +116,7 @@ const handleUserAuthentication = async (fields: Record<string, any>) => {
 };
 
 // File parsing with better error handling
-const parseMultipartData = async (req: NextRequest): Promise<{
+const parseMultipartData = (req: NextRequest): Promise<{
     fields: Record<string, any>;
     files: Record<string, { filepath: string; mimetype: string }>;
 }> => {
@@ -125,7 +126,7 @@ const parseMultipartData = async (req: NextRequest): Promise<{
         const cleanupFiles: string[] = [];
 
         const headersObj = Object.fromEntries(req.headers.entries());
-        const busboy = Busboy({
+        const busboy = Busboy({ 
             headers: headersObj,
             limits: {
                 fileSize: MAX_FILE_SIZE,
@@ -135,14 +136,14 @@ const parseMultipartData = async (req: NextRequest): Promise<{
         });
 
         busboy.on("file", (
-            fieldname: string,
-            file: NodeJS.ReadableStream,
-            filenameOrObject: any,
-            encoding: string,
+            fieldname: string, 
+            file: NodeJS.ReadableStream, 
+            filenameOrObject: any, 
+            encoding: string, 
             mimetype: string
         ) => {
             let filename: string;
-
+            
             if (typeof filenameOrObject === "object" && filenameOrObject !== null) {
                 filename = filenameOrObject.filename || "unknown-file";
                 mimetype = mimetype || filenameOrObject.mimeType || filenameOrObject.mimetype || "";
@@ -160,7 +161,7 @@ const parseMultipartData = async (req: NextRequest): Promise<{
 
             const safeFilename = sanitizeFilename(filename) || `upload-${Date.now()}-${Math.random().toString(36).substring(7)}`;
             const saveTo = path.join(os.tmpdir(), safeFilename);
-
+            
             const writeStream = createWriteStream(saveTo);
             cleanupFiles.push(saveTo);
 
@@ -177,7 +178,7 @@ const parseMultipartData = async (req: NextRequest): Promise<{
             });
 
             file.pipe(writeStream);
-
+            
             files[fieldname] = {
                 filepath: saveTo,
                 mimetype,
@@ -208,48 +209,45 @@ const parseMultipartData = async (req: NextRequest): Promise<{
         busboy.on("error", async (err: Error) => {
             // Cleanup files on error
             await Promise.allSettled(
-                cleanupFiles.map(file => fs.unlink(file).catch(() => { }))
+                cleanupFiles.map(file => fs.unlink(file).catch(() => {}))
             );
             reject(err);
         });
 
-        // Convert NextRequest body to stream
+        // Convert NextRequest body to Node.js readable stream
         const reader = req.body?.getReader();
         if (!reader) {
             reject(new Error("Request body not found"));
             return;
         }
 
-        const stream = new ReadableStream({
-            async start(controller) {
+        // Create a Node.js Readable stream directly
+        const nodeReadable = new Readable({
+            async read() {
                 try {
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
-                        controller.enqueue(value);
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        this.push(null); // End of stream
+                    } else {
+                        this.push(Buffer.from(value));
                     }
-                    controller.close();
-                } catch (error: any) {
-                    controller.error(error);
+                } catch (error) {
+                    this.destroy(error as Error);
                 }
-            },
+            }
         });
 
-        // Use Node.js Readable stream
-        import("stream").then(({ Readable }) => {
-            const nodeReadable = Readable.from(stream as any);
-            nodeReadable.pipe(busboy);
-        }).catch((error: Error) => reject(error));
+        nodeReadable.pipe(busboy);
     });
 };
 
 export async function POST(req: NextRequest) {
     let tempFiles: string[] = [];
-
+    
     try {
         // Parse multipart data
         const { fields, files } = await parseMultipartData(req);
-
+        
         // Track temp files for cleanup
         tempFiles = Object.values(files).map(file => file.filepath);
 
@@ -299,21 +297,21 @@ export async function POST(req: NextRequest) {
         // Generate token and response
         const token = generateToken({ id: userId.toString() });
         const response = NextResponse.json(
-            {
+            { 
                 success: true,
                 insertedId: userId,
-                serviceId: helpRequest._id
-            },
+                serviceId: helpRequest._id 
+            }, 
             { status: 201 }
         );
-
+        
         setTokenCookie(response, token);
 
         return response;
 
     } catch (error) {
         console.error("POST /api/Providingservice error:", error);
-
+        
         // Return appropriate error based on type
         if (error instanceof Error) {
             if (error.message.includes("File too large")) {
@@ -331,11 +329,11 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json(
-            {
+            { 
                 error: true,
                 message: error instanceof Error ? error.message : "Internal server error",
-                ...(process.env.NODE_ENV === 'development' && error instanceof Error && {
-                    stack: error.stack
+                ...(process.env.NODE_ENV === 'development' && error instanceof Error && { 
+                    stack: error.stack 
                 })
             },
             { status: 500 }
@@ -345,8 +343,8 @@ export async function POST(req: NextRequest) {
         // Cleanup temporary files
         if (tempFiles.length > 0) {
             await Promise.allSettled(
-                tempFiles.map((filepath: string) =>
-                    fs.unlink(filepath).catch((err: Error) =>
+                tempFiles.map((filepath: string) => 
+                    fs.unlink(filepath).catch((err: Error) => 
                         console.warn(`Failed to cleanup ${filepath}:`, err.message)
                     )
                 )
