@@ -28,7 +28,11 @@ const HelpRequestSchema = new mongoose.Schema({
   type: { 
     type: String,
     default: "request", // نوع الطلب (طلب خدمة)
-  }
+  },
+  embedding: {
+  type: [Number],
+  default: [],
+},
 }, {
   timestamps: true,
 });

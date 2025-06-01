@@ -14,7 +14,7 @@ import { generateToken } from "@/app/lib/jwt";
 import { setTokenCookie } from "@/app/lib/cookies";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/app/lib/jwt";
-
+import { generateEmbedding } from './generateEmbedding';
 export const config = {
     api: {
         bodyParser: false,
@@ -209,6 +209,11 @@ export async function POST(req: NextRequest) {
             contactMethodsArray = [];
         }
 
+//        // توليد embedding للنص المدمج من الفئة والوصف
+        const combinedText = `${fields.category || ''} ${fields.description || ''}`.trim();
+        const embedding = await generateEmbedding(combinedText);
+
+
         const helpRequest = new Providingservice({
             user: userId,
             description: fields.description,
@@ -218,6 +223,7 @@ export async function POST(req: NextRequest) {
             whatsapp: fields.whatsapp,
             email: fields.email,
             image: imageUrl,
+             embedding,
         });
 
         await helpRequest.save();

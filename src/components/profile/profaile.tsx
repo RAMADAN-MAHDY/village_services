@@ -256,7 +256,7 @@ export default function Profile() {
             {showRequest &&
                 <section className="bg-[#8b753621] p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <h2 className="col-span-full text-white text-xl font-bold mt-10 mb-2">الطلبات التي تحتاجها</h2>
-                    {helpRequests.length === 0 ? (
+                    {!helpRequests ||  helpRequests.length === 0 ? (
                         <p className="text-white col-span-full">لا يوجد طلبات</p>
                     ) : (
                         helpRequests.map((request) => (

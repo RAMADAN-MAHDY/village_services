@@ -10,6 +10,7 @@ import { generateToken } from "@/app/lib/jwt";
 import { setTokenCookie } from "@/app/lib/cookies";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/app/lib/jwt";
+import { generateEmbedding } from '../Providingservice/generateEmbedding';
 
 
 export async function POST(req: NextRequest) {
@@ -90,6 +91,9 @@ export async function POST(req: NextRequest) {
             userId = decoded.id;
         }
 
+//        // توليد embedding للنص المدمج من الفئة والوصف
+        const combinedText = `${data.category || ''} ${data.description || ''}`.trim();
+        const embedding = await generateEmbedding(combinedText);
 
 
         const helpRequest = new HelpRequest({
@@ -100,6 +104,7 @@ export async function POST(req: NextRequest) {
             contactMethods: data.contactMethods,
             whatsapp: data.whatsapp,
             email: data.email,
+            embedding,
         });
 
         await helpRequest.save();

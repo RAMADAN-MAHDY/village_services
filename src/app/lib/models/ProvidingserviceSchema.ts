@@ -31,7 +31,11 @@ const ProvidingserviceSchema = new mongoose.Schema({
   type: { 
     type: String,
     default: "providing", // نوع الطلب (تقديم خدمة)
-  }
+  },
+  embedding: {
+  type: [Number],
+  default: [],
+},
 }, {
   timestamps: true,
 });
