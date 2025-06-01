@@ -56,15 +56,12 @@ export default function HelpRequestForm({ onSubmit }: HelpRequestFormProps) {
             alert("يجب اختيار طريقة واحدة على الأقل للتواصل (الهاتف، الواتساب، أو الإيميل).");
             return;
         }
- if (
-      !email||
-      !whatsapp ||
-      !email
-    ) {
-      alert("يجب اختيار طريقة واحدة على الأقل للتواصل (الهاتف، الواتساب، أو الإيميل). وملئ الحقل");
-      setloading(false)
-      return;
-    }
+if (!email && !whatsapp && !phone) {
+  alert("يجب اختيار طريقة واحدة على الأقل للتواصل (الهاتف، الواتساب، أو الإيميل). وملء الحقل");
+  setloading(false);
+  return;
+}
+
 
 
         const finalCategory = category === "أخرى" ? customCategory : category;

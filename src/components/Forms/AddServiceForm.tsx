@@ -59,15 +59,12 @@ const [successMessage, setSuccessMessage] = useState<boolean>(false);
       setloading(false)
       return;
     }
-     if (
-      !email||
-      !whatsapp ||
-      !email
-    ) {
-      alert("يجب اختيار طريقة واحدة على الأقل للتواصل (الهاتف، الواتساب، أو الإيميل).");
-      setloading(false)
-      return;
-    }
+if (!email && !whatsapp && !phone) {
+  alert("يجب اختيار طريقة واحدة على الأقل للتواصل (الهاتف، الواتساب، أو الإيميل). وملء الحقل");
+  setloading(false);
+  return;
+}
+
 
     const finalCategory = category === "أخرى" ? customCategory : category;
 
