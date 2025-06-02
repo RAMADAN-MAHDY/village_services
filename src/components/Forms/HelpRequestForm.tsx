@@ -22,6 +22,7 @@ export default function HelpRequestForm({ onSubmit }: HelpRequestFormProps) {
     const [whatsapp, setWhatsapp] = useState("");
     const [email, setEmail] = useState("");
     const [loading, setloading] = useState<boolean>(false)
+    const [successMessage, setSuccessMessage] = useState<boolean>(false);
 
 
     const categories = [
@@ -46,6 +47,7 @@ export default function HelpRequestForm({ onSubmit }: HelpRequestFormProps) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setloading(true)
+        setSuccessMessage(false)
 
         // تحقق من وجود طريقة واحدة على الأقل للتواصل
         if (
@@ -56,11 +58,11 @@ export default function HelpRequestForm({ onSubmit }: HelpRequestFormProps) {
             alert("يجب اختيار طريقة واحدة على الأقل للتواصل (الهاتف، الواتساب، أو الإيميل).");
             return;
         }
-if (!email && !whatsapp && !phone) {
-  alert("يجب اختيار طريقة واحدة على الأقل للتواصل (الهاتف، الواتساب، أو الإيميل). وملء الحقل");
-  setloading(false);
-  return;
-}
+        if (!email && !whatsapp && !phone) {
+            alert("يجب اختيار طريقة واحدة على الأقل للتواصل (الهاتف، الواتساب، أو الإيميل). وملء الحقل");
+            setloading(false);
+            return;
+        }
 
 
 
@@ -96,6 +98,8 @@ if (!email && !whatsapp && !phone) {
                 setWhatsapp("");
                 setEmail("");
                 setloading(false)
+                setSuccessMessage(true)
+
 
             } else {
                 console.error("Failed to submit request:", await response.json());
@@ -142,17 +146,24 @@ if (!email && !whatsapp && !phone) {
                     />
                 </div>
             )}
-
             {/* description */}
             <div>
                 <label className="block text-sm font-medium text-gray-700">الوصف</label>
                 <textarea
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => {
+                        if (e.target.value.length <= 500) {
+                            setDescription(e.target.value);
+                        }
+                    }}
+                    maxLength={500}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     rows={4}
                     required
                 />
+                <div className="text-right text-sm text-gray-500 mt-1">
+                    {description.length} / 500 حرف
+                </div>
             </div>
 
             {/* contact methods */}
@@ -196,10 +207,21 @@ if (!email && !whatsapp && !phone) {
                     {contactMethods.includes("whatsapp") && (
                         <div>
                             <input
-                                type="text"
+                                type="tel"
                                 placeholder="رقم واتساب"
                                 value={whatsapp}
-                                onChange={(e) => setWhatsapp(e.target.value)}
+                                onChange={(e) => {
+                                    let value = e.target.value;
+
+                                    // نتأكد إنه يبدأ بـ +20
+                                    if (!value.startsWith('+2')) {
+                                        value = '+2' + value.replace(/^\+?2?/, '');
+                                    }
+
+                                    // نحافظ على الأرقام فقط بعد +20 ونخلي الحد الأقصى 12 رقم بعد +20
+                                    const numberPart = value.replace('+2', '').replace(/\D/g, '').slice(0, 11);
+                                    setWhatsapp('+2' + numberPart);
+                                }}
                                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             />
                         </div>
@@ -229,6 +251,7 @@ if (!email && !whatsapp && !phone) {
                     )}
                 </div>
             </div>
+            <p className="text-center text-[#0bdb27] font-bold text-4xl"> {successMessage && "تم ارسال الطلب "}</p>
 
             <button
                 type="submit"
