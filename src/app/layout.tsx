@@ -4,6 +4,7 @@ import Navbar from '../components/Layout/Navbar';
 import Footer from '../components/Layout/Footer';
 import Container from '../components/Layout/Container';
 import LanguageSwitcher from '../components/Shared/LanguageSwitcher';
+import GoogleAnalytics from '@/components/googleAnalytics'
 import './globals.css';
 
 const geistSans = Geist({
@@ -26,11 +27,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+    
+   // google Analytics
+    const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GA_TRACKING_ID;
+
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+                <GoogleAnalytics trackingId={GA_TRACKING_ID} />
+
         <Navbar />
         {/* <LanguageSwitcher /> */}
         <Container>
