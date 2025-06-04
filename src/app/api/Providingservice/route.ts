@@ -269,18 +269,18 @@ export async function POST(req: NextRequest) {
         ]);
 
         // Handle image upload and embedding generation in parallel
-        const [imageUrl, embedding] = await Promise.all([
+        const [imageUrl] = await Promise.all([
             // Upload image if exists
             files.image ? uploadImageToImgBB(files.image.filepath) : Promise.resolve(null),
-            // Generate embedding
-            Promise.resolve().then(async () => {
-                const combinedText = `${fields.category || ''} ${fields.description || ''}`.trim();
-                return combinedText ? await generateEmbedding(combinedText) : null;
-            })
+            // // Generate embedding
+            // Promise.resolve().then(async () => {
+            //     const combinedText = `${fields.category || ''} ${fields.description || ''}`.trim();
+            //     return combinedText ? await generateEmbedding({text :combinedText , collection : "Providingservice" , serviceId : }) : null;
+            // })
         ]);
 
-        // Create service request
-        const helpRequest = new Providingservice({
+        // Create serviceRequest request
+        const serviceRequest = new Providingservice({
             user: userId,
             description: fields.description,
             phone: fields.phone,
@@ -289,10 +289,16 @@ export async function POST(req: NextRequest) {
             whatsapp: fields.whatsapp,
             email: fields.email,
             image: imageUrl,
-            embedding,
+            // embedding,
         });
 
-        await helpRequest.save();
+        await serviceRequest.save();
+
+        // Handle embedding generation in parallel
+
+         const combinedText = `${fields.category || ''} ${fields.description || ''}`.trim();
+
+         await generateEmbedding({text :combinedText , collection : "providingservices" , serviceId : serviceRequest._id  }) 
 
         // Generate token and response
         const token = generateToken({ id: userId.toString() });
@@ -300,7 +306,7 @@ export async function POST(req: NextRequest) {
             { 
                 success: true,
                 insertedId: userId,
-                serviceId: helpRequest._id 
+                serviceId: serviceRequest._id 
             }, 
             { status: 201 }
         );

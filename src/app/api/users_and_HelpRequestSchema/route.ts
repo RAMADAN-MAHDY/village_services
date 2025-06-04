@@ -91,11 +91,8 @@ export async function POST(req: NextRequest) {
             userId = decoded.id;
         }
 
-//        // توليد embedding للنص المدمج من الفئة والوصف
-        const combinedText = `${data.category || ''} ${data.description || ''}`.trim();
-        const embedding = await generateEmbedding(combinedText);
-
-
+        
+        
         const helpRequest = new HelpRequest({
             user: userId,
             description: data.description,
@@ -104,11 +101,14 @@ export async function POST(req: NextRequest) {
             contactMethods: data.contactMethods,
             whatsapp: data.whatsapp,
             email: data.email,
-            embedding,
+            // embedding,
         });
-
+        
         await helpRequest.save();
-
+        
+        //        // توليد embedding للنص المدمج من الفئة والوصف
+        const combinedText = `${data.category || ''} ${data.description || ''}`.trim();
+        await generateEmbedding({text :combinedText , collection : "helprequests" , serviceId : helpRequest._id  });
         // هنا بنولد التوكن بالـ userId
         const token = generateToken({ id: userId.toString() });
 
