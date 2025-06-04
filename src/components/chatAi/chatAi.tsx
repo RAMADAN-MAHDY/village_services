@@ -8,6 +8,7 @@ export default function Chat() {
     { id: 1, from: 'bot', text: 'أهلاً! كيف أقدر أساعدك؟المحادثه مخصصه للخدمات اي سؤال خارجي سيتم الرد عشوائي' },
   ]);
   const [input, setInput] = useState('');
+  const [today, settoday] = useState(()=> localStorage.getItem("lastResetDate"));
   const [requestCount, setRequestCount] = useState(() => {
     const savedCount = localStorage.getItem('requestCount');
     return savedCount ? parseInt(savedCount, 10) : 0;
@@ -25,7 +26,15 @@ export default function Chat() {
 
   // تحديث عدد الطلبات عند إضافة رسالة جديدة    بشكل مؤقت
   useEffect(() => {
+    // console.log("today saved" , today , "today naw", new Date().toDateString() )
+    if (today !== new Date().toDateString()) {
+      localStorage.setItem("lastResetDate", new Date().toDateString());
+      setRequestCount(0);
+    }
+    settoday(new Date().toDateString())
+    
     localStorage.setItem('requestCount', requestCount.toString());
+
   }, [requestCount]);
   // إرسال الرسالة إلى API
   const sendMessage = async () => {
@@ -115,7 +124,7 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       </div>
 
       {/* شريط الإدخال */}
-      <div className="flex p-3 border-t bg-white">
+      <div className="flex flex-wrap p-3 border-t bg-white">
         <input
           type="text"
           placeholder="اكتب رسالتك هنا..."
@@ -125,6 +134,7 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
           className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <button
+          disabled={requestCount >= 5}
           onClick={sendMessage}
           className="ml-2 bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
         >
