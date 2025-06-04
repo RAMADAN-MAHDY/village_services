@@ -130,7 +130,7 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         >
             <svg className="w-[20px] h-[20px]"  xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 24 24" role="img" aria-labelledby="sendIconTitle" stroke="#ffffff" strokeWidth="1" strokeLinecap="square" strokeLinejoin="miter" fill="none" color="#ffffff"> <title id="sendIconTitle">ارسال</title> <polygon points="21.368 12.001 3 21.609 3 14 11 12 3 9.794 3 2.394"/> </svg>
         </button>
-        <div className="ml-4 pt-3 text-[#ff0000] text-[12px]"> رصيدك اليوم: {5 - requestCount}</div>
+        <div className="ml-4 pt-3 text-[#ff0000] text-[12px] font-semibold"> رصيدك اليوم: {5 - requestCount}</div>
       </div>
     </div>
     </div>
