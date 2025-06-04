@@ -218,24 +218,24 @@ const AddServiceForm: React.FC<{
                     </div>
                     {contactMethods.includes("whatsapp") && (
                         <div>
-                        <input 
-  type="tel"
-  placeholder="رقم واتساب"
-  value={whatsapp}
-  onChange={(e) => {
-    let value = e.target.value;
+                            <input
+                                type="tel"
+                                placeholder="رقم واتساب"
+                                value={whatsapp}
+                                onChange={(e) => {
+                                    let value = e.target.value;
 
-    // نتأكد إنه يبدأ بـ +20
-    if (!value.startsWith('+2')) {
-      value = '+2' + value.replace(/^\+?2?/, '');
-    }
+                                    // نتأكد إنه يبدأ بـ +20
+                                    if (!value.startsWith('+2')) {
+                                        value = '+2' + value.replace(/^\+?2?/, '');
+                                    }
 
-    // نحافظ على الأرقام فقط بعد +20 ونخلي الحد الأقصى 12 رقم بعد +20
-    const numberPart = value.replace('+2', '').replace(/\D/g, '').slice(0, 11);
-    setWhatsapp('+2' + numberPart);
-  }}
-  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-/>
+                                    // نحافظ على الأرقام فقط بعد +20 ونخلي الحد الأقصى 12 رقم بعد +20
+                                    const numberPart = value.replace('+2', '').replace(/\D/g, '').slice(0, 11);
+                                    setWhatsapp('+2' + numberPart);
+                                }}
+                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            />
 
 
                         </div>

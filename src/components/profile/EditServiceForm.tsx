@@ -307,13 +307,33 @@ export default function EditServiceForm({ service, onClose, serviceId }: EditSer
                                 <span>واتساب</span>
                             </label>
                             {formData.contactMethods.includes("whatsapp") && (
+                                // <input
+                                //     type="tel"
+                                //     value={formData.whatsapp}
+                                //     onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                                //     className="block w-full rounded-xl border px-3 py-2 mt-1"
+                                //     placeholder="0123456789"
+                                // />
                                 <input
-                                    type="tel"
-                                    value={formData.whatsapp}
-                                    onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                                    className="block w-full rounded-xl border px-3 py-2 mt-1"
-                                    placeholder="0123456789"
-                                />
+                                type="tel"
+                                placeholder="رقم واتساب"
+                                value={formData.whatsapp}
+                                onChange={(e) => {
+                                    let value = e.target.value;
+                                    
+                                    // نتأكد إنه يبدأ بـ +20
+                                    if (!value.startsWith('+2')) {
+                                        value = '+2' + value.replace(/^\+?2?/, '');
+                                    }
+
+                                    // نحافظ على الأرقام فقط بعد +20 ونخلي الحد الأقصى 12 رقم بعد +20
+                                    const numberPart = value.replace('+2', '').replace(/\D/g, '').slice(0, 11);
+                                    // setWhatsapp('+2' + numberPart);
+
+                                    setFormData({ ...formData, whatsapp: '+2' + numberPart})
+                                }}
+                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            />  
                             )}
                         </div>
                     </fieldset>

@@ -17,7 +17,7 @@ interface Props {
 }
 
 export default function EditHelpRequestForm({ HelpReques, requestId, onClose }: Props) {
-    
+
     const currentRequest = HelpReques.find((r) => r._id === requestId);
 
     const [description, setDescription] = useState(currentRequest?.description || "");
@@ -168,11 +168,30 @@ export default function EditHelpRequestForm({ HelpReques, requestId, onClose }: 
                                 transition={{ duration: 0.3 }}
                             >
                                 <label className="block text-white mb-2">رقم الواتساب:</label>
-                                <input
+                                {/* <input
                                     type="text"
                                     value={whatsapp}
                                     onChange={(e) => setWhatsapp(e.target.value)}
                                     className="w-full border border-teal-300 p-3 rounded-md mb-6 focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
+                                /> */}
+
+                                <input
+                                    type="tel"
+                                    placeholder="رقم واتساب"
+                                    value={whatsapp}
+                                    onChange={(e) => {
+                                        let value = e.target.value;
+
+                                        // نتأكد إنه يبدأ بـ +20
+                                        if (!value.startsWith('+2')) {
+                                            value = '+2' + value.replace(/^\+?2?/, '');
+                                        }
+
+                                        // نحافظ على الأرقام فقط بعد +20 ونخلي الحد الأقصى 12 رقم بعد +20
+                                        const numberPart = value.replace('+2', '').replace(/\D/g, '').slice(0, 11);
+                                        setWhatsapp('+2' + numberPart);
+                                    }}
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                 />
                             </motion.div>
                         )}
