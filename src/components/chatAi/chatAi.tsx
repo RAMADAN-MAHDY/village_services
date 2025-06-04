@@ -8,6 +8,10 @@ export default function Chat() {
     { id: 1, from: 'bot', text: 'أهلاً! كيف أقدر أساعدك؟المحادثه مخصصه للخدمات اي سؤال خارجي سيتم الرد عشوائي' },
   ]);
   const [input, setInput] = useState('');
+  const [requestCount, setRequestCount] = useState(() => {
+    const savedCount = localStorage.getItem('requestCount');
+    return savedCount ? parseInt(savedCount, 10) : 0;
+  });
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // دالة لتمرير السكّول تلقائيًا لآخر رسالة
@@ -19,9 +23,18 @@ export default function Chat() {
     scrollToBottom();
   }, [messages]);
 
+  // تحديث عدد الطلبات عند إضافة رسالة جديدة    بشكل مؤقت
+  useEffect(() => {
+    localStorage.setItem('requestCount', requestCount.toString());
+  }, [requestCount]);
   // إرسال الرسالة إلى API
   const sendMessage = async () => {
     if (!input.trim()) return;
+    // تحديث عدد الطلبات
+    if (requestCount >= 5) {
+        setMessages(prev => [...prev, { id: Date.now() + 1, from: 'bot', text: 'لقد وصلت إلى الحد الأقصى للطلبات اليوم😔. يرجى العودة غداً. او استخدم الفلتر واختار الفئة اللي بتدور عليها😊' }]);
+        return;
+      }
 
     const userMsg = { id: Date.now(), from: 'user', text: input };
     setMessages(prev => [...prev, userMsg]);
@@ -43,6 +56,8 @@ export default function Chat() {
       };
 
       setMessages(prev => [...prev, botMsg]);
+      setRequestCount(prev => prev + 1);
+      scrollToBottom();
     } catch {
       setMessages(prev => [
         ...prev,
@@ -78,7 +93,7 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
           />
         </div>
       {/* الرسائل */}
-      <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
+      <div className="flex-1 p-0 overflow-y-auto bg-gray-50" dir='rtl'>
         <AnimatePresence>
           {messages.map(({ id, from, text }) => (
             <motion.div
@@ -86,7 +101,7 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className={`mb-3 max-w-[80%] p-3 rounded-lg whitespace-pre-line ${
+              className={`mb-3 max-w-[100%] p-3 rounded-l-lg whitespace-pre-line ${
                 from === 'user'
                   ? 'bg-blue-500 text-white self-end '
                   : 'bg-gray-300 text-[#000000] self-start font-semibold'
@@ -115,6 +130,7 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         >
             <svg className="w-[20px] h-[20px]"  xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 24 24" role="img" aria-labelledby="sendIconTitle" stroke="#ffffff" strokeWidth="1" strokeLinecap="square" strokeLinejoin="miter" fill="none" color="#ffffff"> <title id="sendIconTitle">ارسال</title> <polygon points="21.368 12.001 3 21.609 3 14 11 12 3 9.794 3 2.394"/> </svg>
         </button>
+        <div className="ml-4 pt-3 text-[#ff0000] text-[12px]"> رصيدك اليوم: {5 - requestCount}</div>
       </div>
     </div>
     </div>
