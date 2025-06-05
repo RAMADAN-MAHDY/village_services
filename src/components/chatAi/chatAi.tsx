@@ -42,6 +42,8 @@ export default function Chat() {
     // تحديث عدد الطلبات
     if (requestCount >= 5) {
         setMessages(prev => [...prev, { id: Date.now() + 1, from: 'bot', text: 'لقد وصلت إلى الحد الأقصى للطلبات اليوم😔. يرجى العودة غداً. او استخدم الفلتر واختار الفئة اللي بتدور عليها😊' }]);
+      setRequestCount(prev => prev + 1);
+
         return;
       }
 
@@ -84,7 +86,10 @@ interface Message {
 
 const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
+         if (requestCount <= 6) {
+            console.log("requestCount" + requestCount)
         sendMessage();
+         }
     }
 };
 
@@ -134,13 +139,13 @@ const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
           className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <button
-          disabled={requestCount >= 5}
+          disabled={requestCount >= 6}
           onClick={sendMessage}
           className="ml-2 bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
         >
             <svg className="w-[20px] h-[20px]"  xmlns="http://www.w3.org/2000/svg" width="800px" height="800px" viewBox="0 0 24 24" role="img" aria-labelledby="sendIconTitle" stroke="#ffffff" strokeWidth="1" strokeLinecap="square" strokeLinejoin="miter" fill="none" color="#ffffff"> <title id="sendIconTitle">ارسال</title> <polygon points="21.368 12.001 3 21.609 3 14 11 12 3 9.794 3 2.394"/> </svg>
         </button>
-        <div className="ml-4 pt-3 text-[#ff0000] text-[12px] font-semibold"> رصيدك اليوم: {5 - requestCount}</div>
+        <div className="ml-4 pt-3 text-[#ff0000] text-[12px] font-semibold"> رصيدك اليوم: { requestCount > 4 ?  0 :  5 - requestCount}</div>
       </div>
     </div>
     </div>
