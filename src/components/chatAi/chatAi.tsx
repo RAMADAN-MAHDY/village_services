@@ -65,9 +65,12 @@ export default function Chat() {
         from: 'bot',
         text: data.message.answer || 'معنديش رد دلوقتي.',
       };
-
+    
       setMessages(prev => [...prev, botMsg]);
-      setRequestCount(prev => prev + 1);
+      if (data.message.answer){
+        setRequestCount(prev => prev + 1);
+      }
+    //   setRequestCount(prev => prev + 1);
       scrollToBottom();
     } catch {
       setMessages(prev => [
